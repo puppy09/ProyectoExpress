@@ -58,4 +58,35 @@ const getGruposCreados = async(req:Request, res:Response)=>{
         return res.status(500).json({message:'ERROR OBTENIENDO GRUPOS'});
     }
 }
-export{ postGrupos, getGruposCreados };
+
+const getGruposMiembro = async(req:Request, res:Response)=>{
+    try{
+        const UserId = (req as any).user.id;
+        if(!findingUser){
+            return res.status(404).json({message:'Usuario no encontrado'});
+        }
+
+        //Obtenemos todos los grupos a los que pertenece la persona
+        const GruposMiembro = await miembros.findAll({
+            where:{
+                id_usuario: UserId
+            },
+            include:[
+                {
+                    model:grupos,
+                    as:'grupoDetail',
+                    attributes:['nombre', 'descripcion', 'fondos']
+                }
+            ]
+        });
+        if(GruposMiembro.length===0){
+            return res.status(404).json({message:'Este usuario no es miembro de ningun grupo aun'});
+        }
+        return res.status(200).json(GruposMiembro);
+
+    }catch(error){
+        console.log(error);
+        return res.status(500).json({message:'ERROR OBTENIENDO GRUPOS A LOS QUE PERTENECE ESTE USUARIO'});
+    }
+}
+export{ postGrupos, getGruposCreados, getGruposMiembro };

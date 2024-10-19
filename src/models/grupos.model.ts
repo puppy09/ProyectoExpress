@@ -2,6 +2,7 @@ import { DataTypes, Model, Optional } from "sequelize";
 import { sequelize } from "../config/database";
 import {user} from "../models/user.model";
 import { estatus } from "./estatus.model";
+import { miembros } from "./miembros_grupos.model";
 
 interface gruposAttributes{
     id_grupo: number,
@@ -61,4 +62,5 @@ grupos.init({
     tableName:'tb_grupos',
     timestamps:false,
 });
+
 export { grupos };

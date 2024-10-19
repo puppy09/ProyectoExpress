@@ -46,4 +46,5 @@ miembros.init({
     tableName:'tb_miembrosgrupos',
     timestamps:false,
 });
+miembros.belongsTo(grupos,{ foreignKey: 'id_grupo', as:'grupoDetail'});
 export { miembros };
