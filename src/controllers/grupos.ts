@@ -38,4 +38,24 @@ const postGrupos = async(req:Request, res:Response)=>{
     }
 }
 
-export{ postGrupos };
+const getGruposCreados = async(req:Request, res:Response)=>{
+    try{
+        const UserId = (req as any).user.id;
+        if(!findingUser){
+            return res.status(404).json({message:'Usuario no encontrado'});
+        }
+        const gruposCreados = await grupos.findAll({
+            where:{
+                id_creador: UserId
+            }
+        });
+        if(gruposCreados.length===0){
+            return res.status(404).json({message:'Este usuario aun no ha creado grupos'});
+        }
+        return res.status(200).json({gruposCreados});
+    }catch(error){
+        console.log(error);
+        return res.status(500).json({message:'ERROR OBTENIENDO GRUPOS'});
+    }
+}
+export{ postGrupos, getGruposCreados };
