@@ -17,7 +17,7 @@ interface pagosAttributes{
     subcategoria: number,
     tipo_pago: number,
     fecha: Date,
-    dia_pago:number,
+    //dia_pago:number,
     pagos_hechos:number,
     total_pagos:number,
     estatus_pago:number
@@ -34,7 +34,7 @@ class pagos extends Model<pagosAttributes, pagosCreationAttributes> implements p
     public subcategoria!: number;
     public tipo_pago!: number;
     public fecha!: Date;
-    public dia_pago!: number;
+  //  public dia_pago!: number;
     public pagos_hechos!: number;
     public total_pagos!: number;
     public estatus_pago!: number;
@@ -96,10 +96,6 @@ pagos.init({
     },
     fecha:{
         type:DataTypes.DATE,
-        allowNull:false
-    },
-    dia_pago:{
-        type:DataTypes.INTEGER.UNSIGNED,
         allowNull:false
     },
     pagos_hechos:{

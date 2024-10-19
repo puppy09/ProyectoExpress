@@ -23,7 +23,7 @@ const getUsers = async (req: Request, res: Response) => {
     }
 }
 
-const postUser = async( req: Request, res:Response) => {
+/*const postUser = async( req: Request, res:Response) => {
 
     try{
         const { nombre, apellidos, email, contra} = req.body;
@@ -32,7 +32,7 @@ const postUser = async( req: Request, res:Response) => {
     } catch{
         handleHttp(res, 'ERROR_POSTING_USER')
     }
-}
+}*/
 
 const updateUser = async (req: Request, res: Response) => {
     try{
@@ -67,4 +67,4 @@ const deleteUser = async (req: Request, res: Response) => {
 }
 
 
-export { getUser, getUsers, postUser, updateUser, deleteUser};
+export { getUser, getUsers, updateUser, deleteUser};

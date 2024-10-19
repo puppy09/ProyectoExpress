@@ -1,4 +1,5 @@
 import express, { Request, Response } from 'express';
+import scheduledPaymentJob from './jobs/cronJobs';
 import dotenv from 'dotenv';
 import cors from 'cors';
 import { router } from './routes';
@@ -13,6 +14,8 @@ const port = process.env.PORT || 3000;
 app.get('/', (req: Request, res: Response) => {
     res.send('Hello World!');
 });
+
+scheduledPaymentJob.start();
 
 app.listen(port, () => {
     console.log(`Server is running on http://localhost:${port}`);

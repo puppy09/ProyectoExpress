@@ -59,7 +59,7 @@ const registerCtrl = async(req:Request, res:Response)=>{
     const passHash = await encrypt(contra);
 
     //Registramos en la BD
-    const registerNewUser = await user.create({ nombre, apellidos, email, contra:passHash });
+    const registerNewUser = await user.create({ nombre, apellidos, email, contra:passHash, ingresos_mensules:0 });
     return res.status(200).json(registerNewUser);
 }
 

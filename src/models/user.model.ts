@@ -7,6 +7,7 @@ interface userAttributes {
     apellidos: string,
     email:string,
     contra:string,
+    ingresos_mensules:number
 }
 
 interface userCreationAttributes extends Optional<userAttributes, 'ID'>{}
@@ -16,7 +17,8 @@ class user extends Model<userAttributes, userCreationAttributes> implements user
     public nombre!:string;
     public apellidos!: string;
     public email!:string;
-    public contra!:string
+    public contra!:string;
+    ingresos_mensules!:number;
 }
 
 user.init({
@@ -41,6 +43,9 @@ user.init({
         type: DataTypes.STRING(100),
         allowNull:false
     },
+    ingresos_mensules:{
+        type:DataTypes.FLOAT
+    }
 }, {
     sequelize,
     tableName:'tb_users',

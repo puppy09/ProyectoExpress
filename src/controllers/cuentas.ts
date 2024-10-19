@@ -7,6 +7,9 @@ import { pagos } from "../models/pagos.model";
 import { validateFechaExpiracion } from "../utils/expiracion.handle";
 import { findingUser } from "../utils/userFound.handle";
 import { estatus } from "../models/estatus.model";
+import { movimiento } from "../models/movimientos.model";
+
+import { movimientoProgramado } from "../models/movimientosprogramados.model";
 //import { findingCuenta } from "../utils/cuentaFound.handle";
 
 // POST Cuenta
@@ -125,22 +128,21 @@ const getCuentas = async(req: Request, res: Response)=>{
         res.status(500).json({message: 'internal server error'});
     }
 };*/
-const updateCuentas=async(req:Request, res:Response)=>{
+/*const updateCuentas=async(req:Request, res:Response)=>{
     try{
 
         //Obtenemos id
         const user_id = (req as any).user.id;
+        if(!findingUser(user_id)){
+            return res.status(404).json({ message:'Usuario no encontrado' });
+        }
+
         //Obtenemos id de la cuenta
         const { cuenta_id } = req.params;
 
         //Obtenemos parametros
         const { no_cuenta, fecha_vencimiento, nombre, saldo, estatus} = req.body;
-
-        //Validamos si el usuario existe
-        const userFound = await user.findByPk(user_id);
-        if(!userFound){
-            return res.status(404).json({ message:'Usuario no encontrado' });
-        }
+        
 
          //Validar cuenta y que le pertenezca al usuario
          const cuentaFound = await cuenta.findOne({
@@ -200,7 +202,91 @@ const updateCuentas=async(req:Request, res:Response)=>{
         console.error('Error actualizando la categoria ', error);
         res.status(500).json({message: 'Internal Server error'});
     }
+};*/
+
+const updateCuentas = async (req: Request, res: Response) => {
+    try {
+        // Get user ID and account ID from the request
+        const user_id = (req as any).user.id;
+        const { cuenta_id } = req.params;
+
+        // Get parameters from the request body
+        const { no_cuenta, fecha_vencimiento, nombre, saldo, estatus } = req.body;
+
+        // Validate if the user exists
+        const userFound = await user.findByPk(user_id);
+        if (!userFound) {
+            return res.status(404).json({ message: 'Usuario no encontrado' });
+        }
+
+        // Validate that the account belongs to the user
+        const cuentaFound = await cuenta.findOne({
+            where: {
+                ID: cuenta_id,
+                id_usuario: user_id
+            }
+        });
+        if (!cuentaFound) {
+            return res.status(404).json({ message: 'Cuenta no encontrada o no pertenece al usuario' });
+        }
+
+        // Validate expiration date
+        if (fecha_vencimiento && !validateFechaExpiracion(fecha_vencimiento)) {
+            return res.status(400).json({ message: 'Fecha de expiración inválida' });
+        }
+
+        // Validate if the new `no_cuenta` already exists, but only if `no_cuenta` is provided
+        if (no_cuenta) {
+            const aux_cuenta = await cuenta.findOne({
+                where: {
+                    no_cuenta: no_cuenta
+                }
+            });
+            if (aux_cuenta) {
+                return res.status(500).json({ message: 'Número de cuenta inválido, esta cuenta ya ha sido registrada' });
+            }
+        }
+
+        // If `saldo` is provided, validate that it's a valid number
+        if (saldo !== undefined && (isNaN(saldo) || saldo < 0)) {
+            return res.status(400).json({ message: 'Cantidad inválida para el saldo' });
+        }
+
+        // Update the account with new values or keep the old ones if not provided
+        cuentaFound.nombre = nombre !== undefined ? nombre : cuentaFound.nombre;
+        cuentaFound.saldo = saldo !== undefined ? saldo : cuentaFound.saldo;
+        cuentaFound.fecha_vencimiento = fecha_vencimiento !== undefined ? fecha_vencimiento : cuentaFound.fecha_vencimiento;
+        
+        // Save the old `no_cuenta` before updating it
+        const oldCuenta = cuentaFound.no_cuenta;
+        
+        // If `no_cuenta` is provided, update it; otherwise, keep the old one
+        cuentaFound.no_cuenta = no_cuenta !== undefined ? no_cuenta : cuentaFound.no_cuenta;
+        
+        // If `estatus` is provided, update it; otherwise, keep the old one
+        cuentaFound.estatus = estatus !== undefined ? estatus : cuentaFound.estatus;
+
+        // Save the updated account
+        await cuentaFound.save();
+
+        // If `no_cuenta` was updated, update it in all the related `pagos`
+        if (no_cuenta) {
+            const updatePayments = await pagos.update(
+                { no_cuenta: cuentaFound.no_cuenta },
+                {
+                    where: { no_cuenta: oldCuenta }
+                }
+            );
+        }
+
+        // Return the updated account information
+        res.status(200).json(cuentaFound);
+    } catch (error) {
+        console.error('Error actualizando cuenta:', error);
+        res.status(500).json({ message: 'Error actualizando la cuenta' });
+    }
 };
+
 
 const addFunds = async (req: Request, res: Response) => {
     try {
@@ -208,14 +294,12 @@ const addFunds = async (req: Request, res: Response) => {
         //Obtenemos ID del usuario
         const user_id = (req as any).user.id;
         
-        //Obtenemos ID de la cuenta
-        const { cuenta_id } = req.params;
         
         //Obtenemos el dineros
-        const { money } = req.body;
-
+        const { monto, tipo_deposito, no_cuenta, descripcion, dia_depo } = req.body;
+        console.log(monto);
         //Si no se ingresa dineros
-        if (!money || isNaN(money) || money<=0) {
+        if (!monto || isNaN(monto) || monto<=0) {
             return res.status(400).json({ message: 'Cantidad inválida' });
         }
 
@@ -228,7 +312,7 @@ const addFunds = async (req: Request, res: Response) => {
         //Nos aseguramos que exista la cuenta y le pertenezca al usuario
         const cuentaFound = await cuenta.findOne({
             where: {
-                ID: cuenta_id,
+                no_cuenta: no_cuenta,
                 id_usuario: user_id
             }
         });
@@ -242,15 +326,48 @@ const addFunds = async (req: Request, res: Response) => {
             return res.status(500).json({message:'Esta cuenta está desactivada, actívala primero'});
         }
         //Pasamos el dinero a float
-        const money_parsed = parseFloat(money);
+        const money_parsed = parseFloat(monto);
         const updatedSaldo = (parseFloat(cuentaFound.saldo.toString()) + money_parsed).toFixed(2);
+        
+        //Si es un deposito unico
+        if(tipo_deposito===1){
+            // Save the updated saldo as a number, rounded to 2 decimal places
+            cuentaFound.saldo = parseFloat(updatedSaldo);
+            await cuentaFound.save();
+            
+            const currentDate = new Date();
+            const newDeposito = movimiento.create({
+                id_usuario:user_id,
+                id_pago:0,
+                no_cuenta:no_cuenta,
+                descripcion:descripcion,
+                monto:monto,
+                categoria:'Deposito',
+                tipo_movimiento:1,
+                fecha: currentDate,
+            });
+            return res.status(201).json({ message: 'Saldo actualizado con éxito', cuenta: cuentaFound });
+        }
+        
+        //Si es un deposito programado
+        //lo creamos y lo guardamos en la tabla de movimientos programados
+        const depoProgramado = movimientoProgramado.create({
+            id_usuario: user_id,
+            no_cuenta: no_cuenta,
+            descripcion: descripcion,
+            monto: monto,
+            dia:dia_depo,
+            estatus:1
+        });
 
-        // Save the updated saldo as a number, rounded to 2 decimal places
-        cuentaFound.saldo = parseFloat(updatedSaldo);
-
-        await cuentaFound.save();
-
-        res.status(200).json({ message: 'Saldo actualizado con éxito', cuenta: cuentaFound });
+        //Si es programado mensual sera necesario actualizar los ingresos mensuales del usuario
+        userFound.ingresos_mensules += monto;
+        userFound.save();
+        return res.status(201).json({
+            message: 'Deposito programado con exito',
+            pago:depoProgramado
+        });
+        
     } catch (error) {
         console.error('Error actualizando el saldo:', error);
         res.status(500).json({ message: 'Internal Server Error' });
@@ -329,4 +446,52 @@ const deshabilitarCuenta = async(req:Request, res:Response)=>{
     }
 }
 
-export { postCuenta, getCuentas, updateCuentas,addFunds, habilitarCuenta, deshabilitarCuenta };
+
+const applyProgrammedDeposits = async () =>{
+    const hoy = new Date();
+    const dia= hoy.getDate();
+    try{
+        const depositosToApply = await movimientoProgramado.findAll({
+            where:{
+                dia: dia,
+                estatus:1
+            }
+        });
+        if(depositosToApply.length===0){
+            console.log("No hay depositos para aplicar hoy");
+        }
+
+        for(const deposito of depositosToApply){
+            const {id_usuario, no_cuenta, descripcion, monto, dia, estatus} = deposito;
+            const cuentaFound = await cuenta.findOne({
+                where:{
+                    no_cuenta: no_cuenta
+                }
+            });
+            if(cuentaFound){
+                cuentaFound.saldo += monto;
+                await cuentaFound.save();
+            }
+            else{
+                console.log(`Cuenta ${no_cuenta}, no encontrada`);
+            }
+            const currentDate: Date = new Date();
+            const fecha = currentDate.getDate();
+            const newDeposito = await movimiento.create({
+                id_usuario:id_usuario,
+                id_pago:0,
+                no_cuenta:no_cuenta,
+                descripcion:descripcion,
+                monto:monto,
+                categoria:'Deposito',
+                tipo_movimiento:1,
+                fecha: currentDate,
+            });
+            await newDeposito.save();
+            console.log(`Deposito con monto ${monto} aplicado a cuenta ${no_cuenta} para el usuario ${id_usuario}`);
+        }
+    }catch(error){
+        console.error("Error aplicando depositos programados", error);
+    }
+};
+export { postCuenta, getCuentas, updateCuentas, addFunds, habilitarCuenta, deshabilitarCuenta, applyProgrammedDeposits };
