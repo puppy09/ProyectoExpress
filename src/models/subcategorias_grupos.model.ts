@@ -63,11 +63,12 @@ subcategoriagrupal.init({
     }
 },{
     sequelize,
-    tableName:'tb_subcategory',
+    tableName:'tb_subcategoriasgrupo',
     timestamps:false
 });
 // Subcategory model
-subcategoriagrupal.belongsTo(category, { foreignKey: 'id_categoria' });
+subcategoriagrupal.belongsTo(grupos,{foreignKey: 'id_grupo'});
+subcategoriagrupal.belongsTo(categoriagrupal, { foreignKey: 'id_categoria' });
 subcategoriagrupal.belongsTo(negocio, { foreignKey: 'id_negocio' });
 
 // Category model

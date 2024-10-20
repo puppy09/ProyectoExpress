@@ -271,17 +271,6 @@ const updatePagoProgramado = async(req:Request, res:Response)=>{
         if(!cuentaFound){
             return res.status(404).json({messge:'Esta cuenta no existe o no pertenece al usuario'});
         }
-
-        //Validamos que la categoria y subcategoria coincidan
-        //const isValid = await subcategory.findOne({
-          //  where:{
-            //    id_categoria:categoria,
-              //  id_negocio:subcategoria
-            //}
-        //});
-        //if(!isValid){
-          //  return res.status(404).json({message:'Subcategoria no asignada a categoria'});
-        //}
         //Obtenemos el pago a modificar
         const pagoFound = await pagosprogramados.findOne({
             where:{
