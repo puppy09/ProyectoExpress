@@ -138,7 +138,6 @@ const postPago = async(req: Request, res:Response)=>{
                 no_cuenta:num_cuenta,
                 descripcion:descripcion,
                 monto:monto,
-                categoria:categoryFound.nombre,
                 tipo_movimiento:2,
                 fecha: currentDate
             });
@@ -215,7 +214,6 @@ const updatePago = async(req:Request, res:Response)=>{
                 no_cuenta:cuentaFound.no_cuenta,
                 descripcion:"Ajuste de pago - Reembolso",
                 monto:auxDiferencia,
-                categoria:'Reembolso',
                 tipo_movimiento:3,
                 fecha: currentDate
             });
@@ -230,7 +228,6 @@ const updatePago = async(req:Request, res:Response)=>{
                 no_cuenta:cuentaFound.no_cuenta,
                 descripcion:"Ajuste de pago",
                 monto:auxDiferencia,
-                categoria:'Ajuste de pago - Cobro',
                 tipo_movimiento:1,
                 fecha: currentDate
             });
@@ -323,7 +320,6 @@ const updatePagoProgramado = async(req:Request, res:Response)=>{
                 no_cuenta: cuentaFound.no_cuenta,
                 descripcion: 'Ajuste de Pago - Reembolso',
                 monto: diferencia,
-                categoria: 'Deposito',
                 tipo_movimiento: 3,
                 fecha: currentDate
             });
@@ -680,7 +676,6 @@ const applyProgrammedPagos = async()=>{
                 no_cuenta:no_cuenta,
                 descripcion:descripcion,
                 monto:monto,
-                categoria:categoryFound.nombre,
                 tipo_movimiento:2,
                 fecha: currentDate,
             });
@@ -753,7 +748,6 @@ const applyPagosPendientes = async()=>{
                 no_cuenta:pagoDetail.no_cuenta,
                 descripcion:pagoDetail.descripcion,
                 monto:pagoDetail.monto,
-                categoria:categoryFound.nombre,
                 tipo_movimiento:2,
                 fecha: hoy
             });
@@ -822,7 +816,6 @@ const reemboslarPago = async(req:Request, res:Response)=>{
             no_cuenta:cuentaFound.no_cuenta,
             descripcion:"Reembolso de pago",
             monto:pagoFound.monto,
-            categoria:'Deposito',
             tipo_movimiento:3,
             fecha: currentDate
         });

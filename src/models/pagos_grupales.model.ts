@@ -7,35 +7,35 @@ import { tipoMovimiento } from "./tipomovimiento.model";
 import { pagos } from "./pagos.model";
 import { grupos } from "./grupos.model";
 import { categoriagrupal } from "../models/categorias_grupos.model";
-import { pagogrupal } from "./pagos_grupales.model";
+import { subcategoriagrupal } from "./subcategorias_grupos.model";
 
-interface movimientogrupalAttributes{
-    id_movimiento: number,
+interface pagogrupalAttributes{
+    id_pago: number,
     id_grupo: number,
     id_usuario: number,
-    tipo_movimiento: number,
-    id_pago: number,
     no_cuenta:string,
     descripcion: string,
     monto:number,
+    categoria:number,
+    subcategoria:number,
     fecha: Date,
 }
-interface movimientogrupalCreationAttributes extends Optional<movimientogrupalAttributes, 'id_movimiento'>{}
+interface pagogrupalCreationAttributes extends Optional<pagogrupalAttributes, 'id_pago'>{}
 
-class movimientogrupal extends Model<movimientogrupalAttributes, movimientogrupalCreationAttributes> implements movimientogrupalAttributes{
-    id_movimiento!: number;
+class pagogrupal extends Model<pagogrupalAttributes, pagogrupalCreationAttributes> implements pagogrupalAttributes{
+    id_pago!: number;
     id_grupo!: number;
     id_usuario!: number;
-    tipo_movimiento!:number;
-    id_pago!: number;
-    no_cuenta!: string;
+    no_cuenta!:string;
     descripcion!: string;
-    monto!: number;
-    fecha!:Date;
+    monto!:number;
+    categoria!:number;
+    subcategoria!:number;
+    fecha!: Date;
 }
 
-movimientogrupal.init({
-    id_movimiento:{
+pagogrupal.init({
+    id_pago:{
         type:DataTypes.INTEGER.UNSIGNED,
         autoIncrement: true,
         primaryKey: true
@@ -56,22 +56,6 @@ movimientogrupal.init({
             key: 'ID'
         }
     },
-    tipo_movimiento:{
-        type:DataTypes.INTEGER.UNSIGNED,
-        allowNull:true,
-        references:{
-            model:tipoMovimiento,
-            key:'id_tipomovimiento'
-        }
-    },
-    id_pago:{
-        type:DataTypes.INTEGER.UNSIGNED,
-        allowNull:true,
-        references:{
-            model: pagogrupal,
-            key:'id_pago'
-        }
-    },
     no_cuenta:{
         type:DataTypes.STRING,
         allowNull:false
@@ -83,6 +67,22 @@ movimientogrupal.init({
         type:DataTypes.FLOAT,
         allowNull:false
     },
+    categoria:{
+        type:DataTypes.INTEGER.UNSIGNED,
+        allowNull:false,
+        references:{
+            model:categoriagrupal,
+            key:'id_categoria'
+        }
+    },
+    subcategoria:{
+        type:DataTypes.INTEGER.UNSIGNED,
+        allowNull:false,
+        references:{
+            model:negocio,
+            key:'id_negocio'
+        }
+    },
     fecha:{
         type:DataTypes.DATE,
         allowNull:false
@@ -93,5 +93,6 @@ movimientogrupal.init({
     timestamps:false
 });
 //movimiento.hasOne(diaMov,{foreignKey:'id_mov', as:'movimientoDetail'});
-movimientogrupal.belongsTo(tipoMovimiento, {foreignKey:'tipo_movimiento'});
-export{ movimientogrupal };
+pagogrupal.belongsTo(negocio,{foreignKey: 'subcategoria'});
+pagogrupal.belongsTo(categoriagrupal,{foreignKey:'categoria'});
+export{ pagogrupal };

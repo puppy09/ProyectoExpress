@@ -130,7 +130,7 @@ const updateGrupo = async(req:Request, res:Response)=>{
             return res.status(404).json({message:'Grupo no encontrado'});
         }
         if(grupoFound.id_creador!=UserId){
-            return res.status(401).json({message:'No tienes autorizacion'});
+            return res.status(401).json({message:'No tienes autorizacion'}); 
         }
         grupoFound.nombre = nombre || grupoFound.nombre;
         grupoFound.descripcion = descripcion || grupoFound.descripcion;

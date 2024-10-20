@@ -13,7 +13,6 @@ interface movimientoAttributes{
     id_pago:number,
     no_cuenta:string,
     descripcion: string,
-    categoria:String,
     tipo_movimiento:number;
     monto:number,
     fecha: Date,
@@ -26,7 +25,6 @@ class movimiento extends Model<movimientoAttributes, movimientoCreationAttribute
     id_pago!: number;
     no_cuenta!: string;
     descripcion!: string;
-    categoria!:string;
     tipo_movimiento!:number;
     monto!: number;
     fecha!:Date;
@@ -60,9 +58,6 @@ movimiento.init({
     },
     descripcion:{
         type:DataTypes.STRING,
-    },
-    categoria:{
-        type:DataTypes.STRING
     },
     tipo_movimiento:{
         type:DataTypes.INTEGER.UNSIGNED,

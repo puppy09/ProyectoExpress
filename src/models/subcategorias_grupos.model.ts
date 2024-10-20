@@ -5,6 +5,7 @@ import { user } from "./user.model";
 import { estatus } from "./estatus.model";
 import { negocio } from "./negocio.model";
 import { grupos } from "./grupos.model";
+import { categoriagrupal } from "./categorias_grupos.model";
 
 interface subcategoriagrupalAttributes{
     id_subcategoria: number,
@@ -70,7 +71,7 @@ subcategoriagrupal.belongsTo(category, { foreignKey: 'id_categoria' });
 subcategoriagrupal.belongsTo(negocio, { foreignKey: 'id_negocio' });
 
 // Category model
-category.hasMany(subcategoriagrupal, { foreignKey: 'id_categoria' });
+categoriagrupal.hasMany(subcategoriagrupal, { foreignKey: 'id_categoria' });
 
 // Negocio model
 negocio.hasMany(subcategoriagrupal, { foreignKey: 'id_negocio' });

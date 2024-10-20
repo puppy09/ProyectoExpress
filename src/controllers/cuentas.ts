@@ -342,7 +342,6 @@ const addFunds = async (req: Request, res: Response) => {
                 no_cuenta:no_cuenta,
                 descripcion:descripcion,
                 monto:monto,
-                categoria:'Deposito',
                 tipo_movimiento:1,
                 fecha: currentDate,
             });
@@ -483,7 +482,6 @@ const applyProgrammedDeposits = async () =>{
                 no_cuenta:no_cuenta,
                 descripcion:descripcion,
                 monto:monto,
-                categoria:'Deposito',
                 tipo_movimiento:1,
                 fecha: currentDate,
             });
