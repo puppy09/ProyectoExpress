@@ -89,6 +89,24 @@ const getCuentas = async(req: Request, res: Response)=>{
    }
 };
 
+const getCuentasActivas = async(req: Request, res: Response)=>{
+    try{
+         const userId = (req as any).user.id;
+         const cuentas = await cuenta.findAll({
+             where:{
+                 id_usuario: userId,
+                 estatus: 1
+             }
+         });
+         if(cuentas.length === 0 || !cuentas){
+             return res.status(404).send('Este usuario no tiene ninguna cuenta agregada');
+         }
+         return res.send(cuentas);
+    }catch(error){
+         console.error('Error obteniendo cuentas activas: ', error);
+         handleHttp(res, 'ERROR_GETTING_ACTIVE_CUENTAS'); // Handle error properly
+    }
+ };
 /*const deleteCuentas= async(req: Request, res:Response)=>{
     try{
 
@@ -492,4 +510,4 @@ const applyProgrammedDeposits = async () =>{
         console.error("Error aplicando depositos programados", error);
     }
 };
-export { postCuenta, getCuentas, updateCuentas, addFunds, habilitarCuenta, deshabilitarCuenta, applyProgrammedDeposits };
+export { postCuenta, getCuentas, updateCuentas, addFunds, habilitarCuenta, deshabilitarCuenta, applyProgrammedDeposits, getCuentasActivas };
