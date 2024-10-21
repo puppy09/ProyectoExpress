@@ -226,14 +226,13 @@ const updatePago = async(req:Request, res:Response)=>{
                 id_usuario:userId,
                 id_pago:0,
                 no_cuenta:cuentaFound.no_cuenta,
-                descripcion:"Ajuste de pago",
+                descripcion:`Ajuste de monto de pago con ID ${pagoFound.id_pago}`,
                 monto:auxDiferencia,
                 tipo_movimiento:1,
                 fecha: currentDate
             });
 
         }
-        pagoFound.no_cuenta = no_cuenta || pagoFound.no_cuenta;
         pagoFound.monto = monto || pagoFound.monto;
         pagoFound.descripcion = descripcion || pagoFound.descripcion;
         pagoFound.categoria = categoria || pagoFound.categoria;
@@ -242,6 +241,18 @@ const updatePago = async(req:Request, res:Response)=>{
         //pagoFound.dia_pago = dia_pago || pagoFound.dia_pago;
 
         pagoFound.save();
+
+        const auxMov = await movimiento.findOne({
+            where:{
+                id_pago:pagoId
+            }
+        });
+        if(!auxMov){
+            return res.status(404).json({message:'Movimiento no encontrado'});
+        }
+        auxMov.monto=monto||auxMov.monto;
+        auxMov.descripcion = descripcion || auxMov.descripcion;
+        auxMov.save();
         return res.status(200).json(pagoFound);
 
     }catch(error){

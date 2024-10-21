@@ -6,6 +6,9 @@ import { error } from "console";
 import { estatus } from "../models/estatus.model";
 import { findingUser } from "../utils/userFound.handle";
 import { validateTotalBudgetPercentage } from "../utils/categoryBudget.handle";
+import { movimiento } from "../models/movimientos.model";
+import { pagos } from "../models/pagos.model";
+import { Op } from "sequelize";
 
 //POST Category
 const postCategory = async(req: Request, res:Response)=>{
@@ -177,47 +180,6 @@ const updateCategory = async(req: Request, res:Response)=>{
     }
 }
 
-//DELETE Category
-/*const deleteCategory = async(req: Request, res:Response)=>{
-    try{
-
-        //Obtenemos id del user
-        const user_id = (req as any).user.id;
-
-        //obtenemos id de la categoria
-        const { category_id } = req.params;
-
-        //validamos que el usuario exista
-        const userFound = await user.findByPk(user_id);
-        if(!userFound){
-            return res.status(404).json({message:'user not found'});
-        }
-
-        //validamos que la categoria exista y le pertenezca al usuario
-        const categoryFound = await category.findOne({
-            where:{
-                ID: category_id,
-                id_user: user_id
-            }
-        });
-        if(!categoryFound){
-            return res.status(404).json({message:'categoria no encontrada o no pertenece al usuario'});
-        }
-        await category.destroy({
-            where:{
-                ID: category_id,
-                id_user: user_id
-            }
-        });
-
-        //devolver mensaje de exito
-        res.status(200).json({message: 'categoria eliminada exitosamente'});
-    } catch(error){
-        console.error('Error eliminando categoria', error);
-        res.status(500).json({message: 'internal server error'});
-    }
-};*/
-
 //Hacer categoria Disponible
 const activarCategory = async(req: Request, res:Response)=>{
     try{
@@ -347,4 +309,58 @@ const getActivaCategories=async(req:Request, res:Response)=>{
     }
 }
 
-export {postCategory, getCategory, updateCategory, activarCategory, desactivarCategory, getSingleCategory, getTotalBudget, getActivaCategories};
+const getBudgetSpent = async(req:Request, res:Response)=>{
+    try{
+        const UserId = (req as any).user.id;
+
+        const currentDate = new Date();
+        const currentMonth = currentDate.getMonth()+1;
+        const currentYear = currentDate.getFullYear();
+
+        const userFound = await user.findByPk(UserId);
+        if(!userFound){
+            return res.status(404).json({message:'User no encontrado'});
+        }
+        const categoriasFound = await category.findAll({
+            where:{
+                id_user: UserId
+            }
+        });
+        if(categoriasFound.length===0){
+            return res.status(404).json({message:'Categorias no encontradas'});
+        }
+
+        const budgetSpent = await Promise.all(categoriasFound.map(async (category)=>{
+            const totalSpent = await pagos.sum('monto',{
+                where:{
+                    categoria: category.ID,
+                    fecha:{
+                        [Op.and]:[
+                            { [Op.gte]: new Date(currentYear, currentMonth - 1, 1) },
+                            { [Op.lt]: new Date(currentYear, currentMonth,1)},
+                        ],
+                    },
+                },
+            });
+
+            const ingreso = userFound.ingresos_mensules;
+            const presupuestoCantidad = (category.presupuesto/100)*ingreso;
+            
+            const spentPorcentaje = totalSpent ? (totalSpent/presupuestoCantidad)*100 : 0;
+
+            return {
+                categoria: category.nombre,
+                totalGastado: category.presupuesto,
+                spentPorcentaje: parseFloat(spentPorcentaje.toFixed(2))
+            };
+        }));
+        
+        return res.status(200).json(budgetSpent);
+        console.log()
+
+    }catch(error){
+        console.log(error);
+        return res.status(500).json({message:'ERROR OBTENIENDO PRESUPUESTO GASTADO'});
+    }
+}
+export {postCategory, getCategory, updateCategory, activarCategory, desactivarCategory, getSingleCategory, getTotalBudget, getActivaCategories, getBudgetSpent};
