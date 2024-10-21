@@ -347,11 +347,20 @@ const getBudgetSpent = async(req:Request, res:Response)=>{
             const presupuestoCantidad = (category.presupuesto/100)*ingreso;
             
             const spentPorcentaje = totalSpent ? (totalSpent/presupuestoCantidad)*100 : 0;
+            const auxPorcentajeFixed = parseFloat(spentPorcentaje.toFixed(2));
+            let alerta;
+            if(auxPorcentajeFixed >= 95){
+                alerta="Estas cerca de exceder el presupuesto establecido";
+            }
+            else{
+                alerta="Disponible";
+            }
 
             return {
                 categoria: category.nombre,
-                totalGastado: category.presupuesto,
-                spentPorcentaje: parseFloat(spentPorcentaje.toFixed(2))
+                presupuesto_porcentaje_ingreso_mensual: category.presupuesto,
+                presupuesto_gastado_en_porcentaje: parseFloat(spentPorcentaje.toFixed(2)),
+                alerta_presupuesto: alerta
             };
         }));
         
