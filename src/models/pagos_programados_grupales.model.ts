@@ -9,9 +9,8 @@ import { grupos } from "./grupos.model";
 import { categoriagrupal } from "../models/categorias_grupos.model";
 import { subcategoriagrupal } from "./subcategorias_grupos.model";
 import { estatuspagos } from "./estatus_pagos.model";
-import { tipospagos } from "./tipo_pagos.model";
 
-interface pagogrupalAttributes{
+interface pagogrupalprogramadoAttributes{
     id_pago: number,
     id_grupo: number,
     id_usuario: number,
@@ -20,15 +19,14 @@ interface pagogrupalAttributes{
     monto:number,
     categoria:number,
     subcategoria:number,
-    estatus:number,
-    fecha: Date,
-    tipo_pago:number,
+    dia_programado:number,
     pagos_hechos:number,
-    total_pagos:number
+    total_pagos:number,
+    estatus_pago:number,
 }
-interface pagogrupalCreationAttributes extends Optional<pagogrupalAttributes, 'id_pago'>{}
+interface pagogrupalprogramadoCreationAttributes extends Optional<pagogrupalprogramadoAttributes, 'id_pago'>{}
 
-class pagogrupal extends Model<pagogrupalAttributes, pagogrupalCreationAttributes> implements pagogrupalAttributes{
+class pagogrupalprogramado extends Model<pagogrupalprogramadoAttributes, pagogrupalprogramadoCreationAttributes> implements pagogrupalprogramadoAttributes{
     id_pago!: number;
     id_grupo!: number;
     id_usuario!: number;
@@ -37,14 +35,13 @@ class pagogrupal extends Model<pagogrupalAttributes, pagogrupalCreationAttribute
     monto!:number;
     categoria!:number;
     subcategoria!:number;
-    estatus!: number;
-    fecha!: Date;
-    tipo_pago!:number;
-    pagos_hechos!: number;
-    total_pagos!: number;
+    dia_programado!:number;
+    pagos_hechos!:number;
+    total_pagos!:number;
+    estatus_pago!: number;
 }
 
-pagogrupal.init({
+pagogrupalprogramado.init({
     id_pago:{
         type:DataTypes.INTEGER.UNSIGNED,
         autoIncrement: true,
@@ -93,42 +90,34 @@ pagogrupal.init({
             key:'id_negocio'
         }
     },
-    estatus:{
+    dia_programado:{
+        type:DataTypes.INTEGER.UNSIGNED,
+        allowNull:false
+    },
+    pagos_hechos:{
+        type:DataTypes.INTEGER.UNSIGNED,
+        allowNull:false
+
+    },
+    total_pagos:{
+        type:DataTypes.INTEGER.UNSIGNED,
+        allowNull:false
+    },
+    estatus_pago:{
         type:DataTypes.INTEGER.UNSIGNED,
         allowNull:false,
         references:{
             model:estatuspagos,
             key:'id'
         }
-    },
-    fecha:{
-        type:DataTypes.DATE,
-        allowNull:false
-    },
-    tipo_pago:{
-        type:DataTypes.INTEGER.UNSIGNED,
-        allowNull:false,
-        references:{
-            model: tipospagos,
-            key:'id'
-        }
-    },
-    pagos_hechos:{
-        type:DataTypes.INTEGER.UNSIGNED,
-        allowNull:false,
-    },
-    total_pagos:{
-        type:DataTypes.INTEGER.UNSIGNED,
-        allowNull:false,
     }
 },{
     sequelize,
-    tableName:'tb_pagosgrupal',
+    tableName:'tb_pagosprogramadosgrupal',
     timestamps:false
 });
 //movimiento.hasOne(diaMov,{foreignKey:'id_mov', as:'movimientoDetail'});
-pagogrupal.belongsTo(negocio,{foreignKey: 'subcategoria'});
-pagogrupal.belongsTo(categoriagrupal,{foreignKey:'categoria'});
-pagogrupal.belongsTo(estatuspagos,{foreignKey:'estatus'});
-pagogrupal.belongsTo(tipospagos,{foreignKey:'tipo_pago'});
-export{ pagogrupal };
+pagogrupalprogramado.belongsTo(negocio,{foreignKey: 'subcategoria'});
+pagogrupalprogramado.belongsTo(categoriagrupal,{foreignKey:'categoria'});
+pagogrupalprogramado.belongsTo(estatuspagos,{foreignKey:'estatus_pago'});
+export{ pagogrupalprogramado };
