@@ -7,7 +7,8 @@ interface categoriagrupalAttributes{
     id_categoria: number,
     id_grupo: number,
     categoria: string,
-    id_creador: number
+    id_creador: number,
+    estatus: number
 }
 
 interface categoriagrupalCreationAttributes extends Optional<categoriagrupalAttributes, 'id_categoria'>{}
@@ -17,6 +18,7 @@ class categoriagrupal extends Model<categoriagrupalAttributes, categoriagrupalCr
     public id_grupo!: number;
     public categoria!: string;
     public id_creador!: number;
+    public estatus!: number;
 }
 
 categoriagrupal.init({
@@ -42,10 +44,19 @@ categoriagrupal.init({
         },
         onDelete: 'CASCADE',
         onUpdate: 'CASCADE'
+    },
+    estatus:{
+        type:DataTypes.INTEGER.UNSIGNED,
+        allowNull:false,
+        references:{
+            model: estatus,
+            key:'id'
+        }
     }
 },{
     sequelize,
     tableName:'tb_categoriasgrupo',
     timestamps:false,
 });
+categoriagrupal.belongsTo(estatus, { foreignKey: 'estatus', as: 'estatusDetail'});
 export { categoriagrupal };
