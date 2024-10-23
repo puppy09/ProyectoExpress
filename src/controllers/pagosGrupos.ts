@@ -7,6 +7,7 @@ import { pagogrupalprogramado } from "../models/pagos_programados_grupales.model
 import { pagospendientesgrupos } from "../models/pagospendientes_grupos.mode";
 import { categoriagrupal } from "../models/categorias_grupos.model";
 import { pagos } from "../models/pagos.model";
+import { miembros } from "../models/miembros_grupos.model";
 
 const addPagoGrupal = async(req:Request, res:Response)=>{
     try{
@@ -474,4 +475,105 @@ const applyGruPendientesPagos = async()=>{
         console.log("Error aplicando pago pendiente ", error);
     }
 }
-export {addPagoGrupal, updatePagoGrupal, reembolsoGrupal, getPagosGrupales, getPagosGrupalesByCategory, getPagosGrupalesBySubcategory, getPagosGrupalesByCatandSub, applyGruProgrammedPagos, applyGruPendientesPagos};
+
+const updPagoGruProgramado = async(req: Request, res:Response)=>{
+    try{
+        //Obtenemos Id del Usuario
+        const userId = (req as any).user.id;
+        
+        //Obtenemos el ID del pago
+        const {pagoProgramadoId} = req.params;
+
+        //Obtenemos los datos del pago que se modificaran
+        const {grupo, no_cuenta,descripcion, monto, categoria, subcategoria, dia_pago, total_pagos}=req.body;
+
+        const currentDate = new Date();
+        const grupoFound = await grupos.findByPk(grupo);
+        if(!grupoFound){
+            return res.status(404).json({message:'Grupo no encontrado'});
+        }
+        const isMiembro = await miembros.findOne({
+            where:{
+                id_grupo: grupo,
+                id_usuario: userId
+            }
+        });
+        if(!isMiembro){
+            return res.status(401).json({messge:'No tienes acceso a este grupo'});
+        }
+        //Obtenemos el pago a modificar
+        const pagoFound = await pagogrupalprogramado.findOne({
+            where:{
+                id_pago: pagoProgramadoId,
+                id_usuario: userId,
+                id_grupo: grupo
+            }
+        });
+        if(!pagoFound){
+            return res.status(404).json({message:'Pago no encontrado'});
+        }
+        //const isValid = await subcategory.findOne({
+        //    where:{
+        //        id_categoria:categoria,
+        //        id_negocio:subcategoria
+        //    }
+        //});
+        //if(!isValid){
+        //    return res.status(404).json({message:'Subcategoria no asignada a categoria'});
+        //}
+
+        //Calculamos la diferencia de Dinero (en caso de haberla)
+        //                          
+        const totalPagadoViejo = pagoFound.pagos_hechos * pagoFound.monto; //5k
+        const totalPagadoNuevo = total_pagos * monto; //
+
+        const diferencia = totalPagadoViejo - totalPagadoNuevo;
+
+        if(diferencia>0){
+            grupoFound.fondos += diferencia;
+            await grupoFound.save();
+
+            //Creamos movimiento en la tabla de movimientos
+            const newMovimiento = await movimientogrupal.create({
+                id_grupo: grupo,
+                id_usuario: userId,
+                id_pago: 0,
+                no_cuenta: no_cuenta,
+                descripcion: 'Ajuste de Pago - Reembolso',
+                monto: diferencia,
+                tipo_movimiento: 3,
+                fecha: currentDate
+            });
+            if(pagoFound.pagos_hechos >= total_pagos){
+                pagoFound.estatus_pago=2;
+                //console.log("Estatus del pago");
+                //console.log(pagoFound.estatus_pago);
+                pagoFound.save();
+            }
+            await pagoFound.save();
+        }
+        if(diferencia<0){
+            const totalDebido = Math.abs(diferencia);
+
+            const pagosPendientes = total_pagos - pagoFound.pagos_hechos;
+            if(pagosPendientes>0){
+                const extraPerPago = totalDebido/pagosPendientes;
+                pagoFound.monto = monto + extraPerPago;
+                await pagoFound.save();
+            }
+        }
+        pagoFound.monto = monto || pagoFound.monto;
+        pagoFound.no_cuenta = no_cuenta || pagoFound.no_cuenta;
+        pagoFound.categoria = categoria || pagoFound.categoria;
+        pagoFound.subcategoria = subcategoria || pagoFound.subcategoria;
+        pagoFound.dia_programado = dia_pago || pagoFound.dia_programado;
+        pagoFound.descripcion = descripcion || pagoFound.descripcion;
+        pagoFound.total_pagos = total_pagos || pagoFound.total_pagos;
+        await pagoFound.save();
+        return res.status(200).json({message:'Pago actualizado'});
+    }catch(error){
+        console.log(error);
+        return res.status(500).json({message:'ERROR ACUTUALIZANDO PAGO PROGRAMADO'});
+    }
+}
+export {addPagoGrupal, updatePagoGrupal, reembolsoGrupal, getPagosGrupales, getPagosGrupalesByCategory, getPagosGrupalesBySubcategory, getPagosGrupalesByCatandSub, applyGruProgrammedPagos, applyGruPendientesPagos, updPagoGruProgramado};

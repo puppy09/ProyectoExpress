@@ -510,4 +510,29 @@ const applyProgrammedDeposits = async () =>{
         console.error("Error aplicando depositos programados", error);
     }
 };
-export { postCuenta, getCuentas, updateCuentas, addFunds, habilitarCuenta, deshabilitarCuenta, applyProgrammedDeposits, getCuentasActivas };
+
+const updFondosProgra = async(req:Request, res:Response)=>{
+    try{
+        const UserId = (req as any).user.id;
+        const {idMov} = req.params;
+        const {no_cuenta, monto, dia, estatus, descripcion} = req.body;
+
+        const auxMov = await movimientoProgramado.findByPk(idMov);
+        if(!auxMov){
+            return res.status(404).json({message:'Pago no encontrado'});
+        }
+
+        auxMov.no_cuenta = no_cuenta||auxMov.no_cuenta;
+        auxMov.monto = monto||auxMov.monto;
+        auxMov.dia=dia||auxMov.dia;
+        auxMov.estatus=estatus||auxMov.estatus;
+        auxMov.descripcion=descripcion||auxMov.descripcion;
+        auxMov.save();
+        return res.status(200).json({message:'Pago actualizado'});
+    }catch(error){
+        console.log(error);
+        return res.status(500).json({message:'ERROR ACTUALIZANDO DEPOSITO PROGRAMADO'});
+    }
+}
+
+export { postCuenta, getCuentas, updateCuentas, addFunds, habilitarCuenta, deshabilitarCuenta, applyProgrammedDeposits, getCuentasActivas, updFondosProgra };

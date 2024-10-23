@@ -1,3 +1,4 @@
+import { categoriagrupal } from "../models/categorias_grupos.model";
 import { category } from "../models/category.model";
 import { Op } from "sequelize";
 
@@ -19,4 +20,18 @@ const validateTotalBudgetPercentage = async (newCategoryPercentage: number, user
     // Check if the total percentage + new category exceeds 100%
     return (totalPercentage + newCategoryPercentage) <= 100;
 };
-export {validateTotalBudgetPercentage};
+
+const validateTotalBudgetPercentageGrupal = async(newCategoryPercentage: number, grupo: number, categoryId?: number): Promise<boolean> => {
+    const activeGrupalCategories = await categoriagrupal.findAll({
+        where:{
+            estatus:1,
+            id_grupo: grupo,
+
+            ...(categoryId ? {id_categoria: { [Op.ne]: categoryId}} : {})
+        },
+        attributes: ['presupuesto']
+    });
+    const totalPercentage = activeGrupalCategories.reduce((sum, categoriagrupal) => categoriagrupal.presupuesto, 0);
+    return (totalPercentage + newCategoryPercentage) <= 100;
+}
+export {validateTotalBudgetPercentage, validateTotalBudgetPercentageGrupal};

@@ -8,6 +8,7 @@ interface categoriagrupalAttributes{
     id_grupo: number,
     categoria: string,
     id_creador: number,
+    presupuesto: number,
     estatus: number
 }
 
@@ -18,6 +19,7 @@ class categoriagrupal extends Model<categoriagrupalAttributes, categoriagrupalCr
     public id_grupo!: number;
     public categoria!: string;
     public id_creador!: number;
+    public presupuesto!: number;
     public estatus!: number;
 }
 
@@ -44,6 +46,10 @@ categoriagrupal.init({
         },
         onDelete: 'CASCADE',
         onUpdate: 'CASCADE'
+    },
+    presupuesto:{
+        type:DataTypes.FLOAT,
+        allowNull: false
     },
     estatus:{
         type:DataTypes.INTEGER.UNSIGNED,
