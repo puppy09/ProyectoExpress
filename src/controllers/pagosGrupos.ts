@@ -16,6 +16,16 @@ const addPagoGrupal = async(req:Request, res:Response)=>{
         const {grupo}=req.params;
         const auxGrupo = parseInt(grupo);
         const grupoFound = await grupos.findByPk(grupo);
+        const isActivo = await miembros.findOne({
+            where:{
+                id_grupo: grupo,
+                id_usuario:  UserId,
+                id_estatus: 1
+            }
+        });
+        if(!isActivo){
+            return res.status(500).json({message:'Este user no esta activo'});
+        }
         if(!grupoFound){
             return res.status(404).json({message:'Grupo no encontrado'});
         }
@@ -83,7 +93,16 @@ const updatePagoGrupal = async(req:Request, res:Response)=>{
         const {grupo, no_cuenta, descripcion, monto, categoria, subcategoria} = req.body;
         const {pagoId} = req.params;
         
-
+        const isActivo = await miembros.findOne({
+            where:{
+                id_grupo: grupo,
+                id_usuario:  UserId,
+                id_estatus: 1
+            }
+        });
+        if(!isActivo){
+            return res.status(500).json({message:'Este user no esta activo'});
+        }
         const grupoFound = await grupos.findByPk(grupo);
         if(!grupoFound){
             return res.status(404).json({message:'Grupo no encontrado'});
@@ -163,8 +182,18 @@ const updatePagoGrupal = async(req:Request, res:Response)=>{
 const reembolsoGrupal = async(req:Request, res:Response)=>{
     try{
         const UserId = (req as any).user.id;
-        const {pagoId} = req.params;
+        const {pagoId, grupo} = req.params;
 
+        const isActivo = await miembros.findOne({
+            where:{
+                id_grupo: grupo,
+                id_usuario:  UserId,
+                id_estatus: 1
+            }
+        });
+        if(!isActivo){
+            return res.status(500).json({message:'Este user no esta activo'});
+        }
         const pagoFound = await pagogrupal.findByPk(pagoId);
         if(!pagoFound){
             return res.status(404).json({message:'Pago no encontrado'});
@@ -211,7 +240,16 @@ const getPagosGrupales = async(req:Request, res:Response)=>{
     try{
         const UserId = (req as any).user.id;
         const {grupo} = req.params;
-
+        const isActivo = await miembros.findOne({
+            where:{
+                id_grupo: grupo,
+                id_usuario:  UserId,
+                id_estatus: 1
+            }
+        });
+        if(!isActivo){
+            return res.status(500).json({message:'Este user no esta activo'});
+        }
         const auxPagos = await pagogrupal.findAll({
             where:{
                 id_grupo: grupo
@@ -234,6 +272,16 @@ const getPagosGrupalesByCategory = async(req:Request, res:Response)=>{
         const {grupo} = req.params;
         const {categoria} = req.body;
 
+        const isActivo = await miembros.findOne({
+            where:{
+                id_grupo: grupo,
+                id_usuario:  UserId,
+                id_estatus: 1
+            }
+        });
+        if(!isActivo){
+            return res.status(500).json({message:'Este user no esta activo'});
+        }
         const auxPagos = await pagogrupal.findAll({
             where:{
                 id_grupo: grupo,
@@ -256,6 +304,16 @@ const getPagosGrupalesBySubcategory=async(req:Request, res:Response)=>{
         const {grupo} = req.params;
         const {subcategoria} = req.body;
 
+        const isActivo = await miembros.findOne({
+            where:{
+                id_grupo: grupo,
+                id_usuario:  UserId,
+                id_estatus: 1
+            }
+        });
+        if(!isActivo){
+            return res.status(500).json({message:'Este user no esta activo'});
+        }
         const auxPagos = await pagogrupal.findAll({
             where:{
                 id_grupo: grupo,
@@ -278,6 +336,16 @@ const getPagosGrupalesByCatandSub = async(req:Request, res:Response)=>{
         const {grupo} = req.params;
         const {categoria,subcategoria} = req.body;
 
+        const isActivo = await miembros.findOne({
+            where:{
+                id_grupo: grupo,
+                id_usuario:  UserId,
+                id_estatus: 1
+            }
+        });
+        if(!isActivo){
+            return res.status(500).json({message:'Este user no esta activo'});
+        }
         const auxPagos = await pagogrupal.findAll({
             where:{
                 id_grupo: grupo,
@@ -487,6 +555,16 @@ const updPagoGruProgramado = async(req: Request, res:Response)=>{
         //Obtenemos los datos del pago que se modificaran
         const {grupo, no_cuenta,descripcion, monto, categoria, subcategoria, dia_pago, total_pagos}=req.body;
 
+        const isActivo = await miembros.findOne({
+            where:{
+                id_grupo: grupo,
+                id_usuario:  userId,
+                id_estatus: 1
+            }
+        });
+        if(!isActivo){
+            return res.status(500).json({message:'Este user no esta activo'});
+        }
         const currentDate = new Date();
         const grupoFound = await grupos.findByPk(grupo);
         if(!grupoFound){

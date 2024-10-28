@@ -30,7 +30,8 @@ const postGrupos = async(req:Request, res:Response)=>{
         
         const newMiembro = await miembros.create({
             id_grupo: newGrupo.id_grupo,
-            id_usuario: UserId
+            id_usuario: UserId,
+            id_estatus: 1
         });
         return res.status(200).json(newGrupo);
     }catch(error){
@@ -109,7 +110,8 @@ const joinGrupo = async(req:Request, res:Response)=>{
         if(!ifMiembro){
             const newMiembro = miembros.create({
                 id_grupo: auxGrupo.id_grupo,
-                id_usuario: UserId
+                id_usuario: UserId,
+                id_estatus: 1
             });
             return res.status(200).json({message:'Te uniste al grupo exitosamente'});
         }

@@ -5,6 +5,8 @@ import { movimientogrupal } from "../models/movimientos_grupales.model";
 import { miembros } from "../models/miembros_grupos.model";
 import { movimiento } from "../models/movimientos.model";
 import { movimientoProgramadoGrupal } from "../models/movimientosprogramados_grupal.model";
+import { user } from "../models/user.model";
+import { isMiembro } from "../utils/activeMember.handle";
 const addFondos = async(req:Request, res:Response)=>{
     try{
         const UserId = (req as any).user.id;
@@ -20,17 +22,28 @@ const addFondos = async(req:Request, res:Response)=>{
         if(!cuentaFound){
             return res.status(404).json({message:'Cuenta no encontrada'});
         }
+        const isActivo = await miembros.findOne({
+            where:{
+                id_grupo: grupo,
+                id_usuario:  UserId,
+                id_estatus: 1
+            }
+        });
+        if(!isActivo){
+            return res.status(500).json({message:'Este user no esta activo'});
+        }
         if(cuentaFound.saldo<monto){
             return res.status(500).json({message:'Fondos insuficientes'});
         }
         const isMiembro = miembros.findOne({
             where:{
                 id_grupo: grupo,
-                id_usuario: UserId
+                id_usuario: UserId,
+                id_estatus: 1
             }
         });
         if(!isMiembro){
-            return res.status(401).json({message:'No eres miembro de este grupo'});
+            return res.status(401).json({message:'No eres miembro de este grupo o no es activo'});
         }
         if(tipo_deposito===2){
             const depoProgramado = movimientoProgramadoGrupal.create({
@@ -147,6 +160,16 @@ const uptFondosProGru = async(req:Request, res:Response)=>{
         const {movProId} = req.params;
         const {grupo, no_cuenta, monto, dia_depo, estatus} = req.body;
 
+        const isActivo = await miembros.findOne({
+            where:{
+                id_grupo: grupo,
+                id_usuario:  UserId,
+                id_estatus: 1
+            }
+        });
+        if(!isActivo){
+            return res.status(500).json({message:'Este user no esta activo'});
+        }
         const auxMov = await movimientoProgramadoGrupal.findOne({
             where:{
                 id_grupo: grupo,
@@ -168,4 +191,6 @@ const uptFondosProGru = async(req:Request, res:Response)=>{
         return res.status(500).json({message:'ERROR ACTUALIZANDO FONDO PROGRAMADO'});
     }
 }
+
+
 export{addFondos, applyFondosGrupales, uptFondosProGru};
