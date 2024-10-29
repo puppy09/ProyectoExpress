@@ -6,15 +6,15 @@ import { applyGruPendientesPagos } from '../controllers/pagosGrupos';
 import { applyFondosGrupales } from '../controllers/movimientosGrupos';
 
 const scheduledPaymentJob = new CronJob('* * * * *', () =>{
-    //console.log('Aplicando pagos programados...');
-    //applyProgrammedPagos();
-    //applyProgrammedDeposits();
-    //console.log('Aplicando pagos pendientes...');
-    //applyPagosPendientes();
-    //console.log('Aplicando pagos grupales programados...');
-    //applyGruProgrammedPagos();
-    //console.log('Aplcicando pagos grupales pendientes...');
-    //applyGruPendientesPagos();
+    console.log('Aplicando pagos programados...');
+    applyProgrammedPagos();
+    applyProgrammedDeposits();
+    console.log('Aplicando pagos pendientes...');
+    applyPagosPendientes();
+    console.log('Aplicando pagos grupales programados...');
+    applyGruProgrammedPagos();
+    console.log('Aplcicando pagos grupales pendientes...');
+    applyGruPendientesPagos();
     applyFondosGrupales();
 });
 
