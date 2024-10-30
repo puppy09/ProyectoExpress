@@ -5,7 +5,7 @@ import { applyGruProgrammedPagos } from '../controllers/pagosGrupos';
 import { applyGruPendientesPagos } from '../controllers/pagosGrupos';
 import { applyFondosGrupales } from '../controllers/movimientosGrupos';
 
-const scheduledPaymentJob = new CronJob('* * * * *', () =>{
+const scheduledPaymentJob = new CronJob('0 0 * * *', () =>{
     console.log('Aplicando pagos programados...');
     applyProgrammedPagos();
     applyProgrammedDeposits();
