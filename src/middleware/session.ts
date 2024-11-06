@@ -8,13 +8,13 @@ interface AuthenticatedRequest extends Request{
 }
 
 const checkJwt = (req:Request, res:Response, next:NextFunction) =>{
-    console.log("aijfdndailfjdfnjkdsfnsldjsidnli");
+
     //Extraemos el encabezado
     const authHeader = req.get('authorization');
 
     //Si no hay...
     if(!authHeader || !authHeader.startsWith('Bearer ')){
-        return res.status(401).send("Token no proporcionado o malformado");
+        return res.status(401).json({message:"Token no proporcionado o malformado"});
     }
 
     const token = authHeader.split(" ")[1];

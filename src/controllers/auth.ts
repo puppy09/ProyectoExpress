@@ -58,7 +58,10 @@ const registerCtrl = async(req:Request, res:Response)=>{
     });
 
     //Si se encontro
-    if(checkIs) return "Este Usuario ya esta Registrado";
+    if(checkIs){
+        console.log("Este usuario ya fue registrado");
+        return res.status(400).json({message:'Este Correo ya fue registrado'});
+    }
 
     //Encriptamos contraseña
     const passHash = await encrypt(contra);

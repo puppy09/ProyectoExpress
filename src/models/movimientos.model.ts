@@ -63,7 +63,7 @@ movimiento.init({
         type:DataTypes.INTEGER.UNSIGNED,
         references:{
             model:tipoMovimiento,
-            key:'id_movimientos'
+            key:'id_movimiento'
         }
     },
     monto:{
@@ -79,5 +79,6 @@ movimiento.init({
     tableName:'tb_movimientos',
     timestamps:false
 });
+movimiento.belongsTo(tipoMovimiento, {foreignKey: 'tipo_movimiento', as: 'movimientoDetail'});
 //movimiento.hasOne(diaMov,{foreignKey:'id_mov', as:'movimientoDetail'});
 export{ movimiento };

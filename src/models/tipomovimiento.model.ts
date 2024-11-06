@@ -6,18 +6,18 @@ import { estatus } from "./estatus.model";
 import { negocio } from "./negocio.model";
 
 interface tipoMovimientoAttributes{
-    id_movimiento: number,
+    id_tipomovimiento: number,
     tipo_movimiento: string,
 }
-interface tipoMovimientoCreationAttributes extends Optional<tipoMovimientoAttributes, 'id_movimiento'>{}
+interface tipoMovimientoCreationAttributes extends Optional<tipoMovimientoAttributes, 'id_tipomovimiento'>{}
 
 class tipoMovimiento extends Model<tipoMovimientoAttributes, tipoMovimientoCreationAttributes> implements tipoMovimientoAttributes{
-    id_movimiento!: number;
+    id_tipomovimiento!: number;
     tipo_movimiento!: string;
 }
 
 tipoMovimiento.init({
-    id_movimiento:{
+    id_tipomovimiento:{
         type:DataTypes.INTEGER.UNSIGNED,
         autoIncrement: true,
         primaryKey: true

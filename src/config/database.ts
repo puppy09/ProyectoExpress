@@ -12,6 +12,7 @@ const sequelize = new Sequelize(
 )
 const checkConnection = async() => {
     try{
+        console.log('Conectando a la bd');
         await sequelize.authenticate();
         console.log("conexion exitosa");
     }catch(error){
