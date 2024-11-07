@@ -384,7 +384,6 @@ const getPagos = async(req:Request, res:Response)=>{
         if((await allPagos).length===0){
             return res.status(404).json({message: 'No se encontraron pagos a nombre de este user'});
         }
-        console.log(allPagos);
         return res.status(200).json(allPagos);
 
     }catch(error){
