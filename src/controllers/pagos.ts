@@ -1,17 +1,13 @@
 import { Request, Response } from "express";
 import { handleHttp } from "../utils/error.handle";
 import { user } from "../models/user.model";
-import { cuenta } from "../models/cuentas.model"; // Ensure this is correctly imported
-//import { error } from "console";
+import { cuenta } from "../models/cuentas.model";
 import { category } from "../models/category.model";
 import { tipospagos } from "../models/tipo_pagos.model";
 import { estatuspagos } from "../models/estatus_pagos.model";
 import { pagos } from "../models/pagos.model";
-//import moment from 'moment';
-//import { DATE } from "sequelize";
 import { subcategory } from "../models/subcategory.model";
 import { negocio } from "../models/negocio.model";
-//import { syncBuiltinESMExports } from "module";
 import { findingUser } from "../utils/userFound.handle";
 import { pagosprogramados } from "../models/pagosprogramados.model";
 import { movimiento } from "../models/movimientos.model";

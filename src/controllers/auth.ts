@@ -106,4 +106,16 @@ const recoverPsw = async(req: Request, res:Response)=>{
         return res.status(500).json({message:'ERROR ENVIANDO CORREO'});
     }
 }
-export{registerCtrl, loginCtrl, recoverPsw}
+
+const getSelfData = async(req:Request, res:Response)=>{
+    try {
+        const userID = (req as any).user.id;
+
+        const userFound= await user.findByPk(userID);
+        return res.status(200).json(userFound);
+    } catch (error) {
+        console.log("Error obteniendo datos del usuario", error);
+        return res.status(500).json({message: "ERROR OBTENIENDO DATOS DEL USUARIO"});
+    }
+}
+export{registerCtrl, loginCtrl, recoverPsw, getSelfData}
