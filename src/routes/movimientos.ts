@@ -5,5 +5,5 @@ const router = Router();
 
 router.get('/',checkJwt, getMovimientos);
 router.get('/programados',checkJwt, getMovimientosProgramados);
-router.get('/by/cuenta', checkJwt, getMovByCuenta);
+router.post('/by/cuenta/', checkJwt, getMovByCuenta);
 export {router};

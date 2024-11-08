@@ -19,13 +19,7 @@ const postPago = async(req: Request, res:Response)=>{
             const userId = (req as any).user.id;
 
             //Obtenemos Parametros del pago
-            const {num_cuenta, descripcion, monto, categoria, subcategoria, tipo_pago, dia_pago, total_pagos} = req.body;
-            
-
-            // Validate existence of user
-            if(!findingUser(userId)){
-                return res.status(404).json({message:'Usuario no encontrado'});
-            }
+            const {num_cuenta, descripcion, monto, categoria, subcategoria} = req.body;
 
             //Validar Existencia de Cuenta y que pertenezca al usuario
             const cuentaFound = await cuenta.findOne({
@@ -55,10 +49,10 @@ const postPago = async(req: Request, res:Response)=>{
             }
 
             //Validar Tipo de Pago
-            const tipoPagoFound = await tipospagos.findByPk(tipo_pago);
+            /*const tipoPagoFound = await tipospagos.findByPk(tipo_pago);
             if(!tipoPagoFound){
                 return res.status(404).json({message: 'Tipo Pago invalido'});
-            }
+            }*/
 
             //Si no se ingresa un monto valido
             if (!monto || isNaN(monto) || monto<=0) {
@@ -74,7 +68,7 @@ const postPago = async(req: Request, res:Response)=>{
             //En caso de que sea un pago de unica exhibicion
             //Obtenemos la fecha del dia en el que se haga la compra
             //Solo se hara un pago
-            var numPagosHechos;
+            /*var numPagosHechos;
             var numPagoTotales;
             var auxEstatusPago;
             var dia;
@@ -103,13 +97,9 @@ const postPago = async(req: Request, res:Response)=>{
                     message: 'Pago programado con exito',
                     pago:newProgrammedPago
                 });
-            }
-            //Valores por default en caso de que no entre al if (pago periodico)
-            //numPagosHechos = numPagosHechos || 1;
-            //numPagoTotales = numPagoTotales || 1;
-            //auxEstatusPago = auxEstatusPago || 2;
+            }*/
    
-            dia = dia || currentDate.getDate();
+            //dia = dia || currentDate.getDate();
             //Si es un pago que sea por por abonos
             const newPago = await pagos.create({
                 id_usuario: userId,
@@ -118,9 +108,8 @@ const postPago = async(req: Request, res:Response)=>{
                 monto: monto,
                 categoria: categoria,
                 subcategoria: subcategoria,
-                tipo_pago: tipo_pago,
+                tipo_pago: 1,
                 fecha: currentDate,
-                //dia_pago: dia,
                 pagos_hechos: 1,
                 total_pagos: 1,
                 estatus_pago: 2
@@ -144,6 +133,34 @@ const postPago = async(req: Request, res:Response)=>{
     }
 }
 
+const postPagoProgramado = async(req:Request, res:Response)=>{
+    try {
+        console.log("programando pago");
+        const userId = (req as any).user.id;
+        const {num_cuenta, descripcion, monto, categoria, subcategoria, tipo_pago, dia_pago, total_pagos} = req.body;
+        const newProgrammedPago = await pagosprogramados.create({
+            id_usuario: userId,
+            no_cuenta: num_cuenta,
+            descripcion: descripcion,
+            monto:monto,
+            categoria:categoria,
+            subcategoria:subcategoria,
+            tipo_pago: 2,
+            dia_programado: dia_pago,
+            pagos_hechos: 0,
+            total_pagos: total_pagos,
+            estatus_pago: 1
+        });
+        return res.status(201).json({
+            message: 'Pago programado con exito',
+            pago:newProgrammedPago
+        });
+
+    } catch (error) {
+        console.log("error programando pago", error);
+        return res.status(500).json({message:"ERROR PROGRAMANDO PAGO"});
+    }
+}
 const updatePago = async(req:Request, res:Response)=>{
     try{
         //Obtenemos Id del Usuario
@@ -860,4 +877,4 @@ const getPagosByCuenta = async(req: Request, res:Response)=>{
         return res.status(500).json({message:"ERROR OBTENIENDO PAGOS POR NO DE CUENTA"});
     }
 }
-export{postPago, updatePago, getPagos, getSinglePago, getPagosCategory, getPagosSubcategory, getPagosCatSub, applyProgrammedPagos, reemboslarPago, getPagosProgramados, updatePagoProgramado, applyPagosPendientes, getPagosByCuenta}
+export{postPago, postPagoProgramado, updatePago, getPagos, getSinglePago, getPagosCategory, getPagosSubcategory, getPagosCatSub, applyProgrammedPagos, reemboslarPago, getPagosProgramados, updatePagoProgramado, applyPagosPendientes, getPagosByCuenta}
