@@ -306,7 +306,7 @@ const updateCuentas = async (req: Request, res: Response) => {
 };
 
 
-const addFunds = async (req: Request, res: Response) => {
+/*const addFunds = async (req: Request, res: Response) => {
     try {
 
         //Obtenemos ID del usuario
@@ -389,7 +389,7 @@ const addFunds = async (req: Request, res: Response) => {
         console.error('Error actualizando el saldo:', error);
         res.status(500).json({ message: 'Internal Server Error' });
     }
-};
+};*/
 
 const habilitarCuenta = async(req:Request, res:Response)=>{
     try{
@@ -536,4 +536,4 @@ const updFondosProgra = async(req:Request, res:Response)=>{
     }
 }
 
-export { postCuenta, getCuentas, updateCuentas, addFunds, habilitarCuenta, deshabilitarCuenta, applyProgrammedDeposits, getCuentasActivas, updFondosProgra };
+export { postCuenta, getCuentas, updateCuentas, habilitarCuenta, deshabilitarCuenta, applyProgrammedDeposits, getCuentasActivas, updFondosProgra };

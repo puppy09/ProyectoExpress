@@ -91,7 +91,7 @@ const postFondos = async(req:Request, res:Response)=>{
         
         
         //Obtenemos el dineros
-        const { monto, tipo_deposito, no_cuenta, descripcion } = req.body;
+        const { monto, no_cuenta, descripcion } = req.body;
         console.log(monto);
         //Si no se ingresa dineros
         if (!monto || isNaN(monto) || monto<=0) {
@@ -142,4 +142,65 @@ const postFondos = async(req:Request, res:Response)=>{
         return res.status(500).json({message: "ERROR AÑADIENDO FONDOS A CUENTA"});
     }
 }
-export {getMovimientos, getMovimientosProgramados, getMovByCuenta}
+
+const postFondosProgramados = async(req:Request, res:Response)=>{
+    try {
+        //Obtenemos ID del usuario
+        const user_id = (req as any).user.id;
+        
+        
+        //Obtenemos el dineros
+        const { monto, no_cuenta, descripcion, dia_depo } = req.body;
+        console.log(monto);
+        //Si no se ingresa dineros
+        if (!monto || isNaN(monto) || monto<=0) {
+            return res.status(400).json({ message: 'Cantidad inválida' });
+        }
+
+        //Buscamos que el usuario exista
+        const userFound = await user.findByPk(user_id);
+        if (!userFound) {
+            return res.status(404).json({ message: 'Usuario no encontrado' });
+        }
+
+        //Nos aseguramos que exista la cuenta y le pertenezca al usuario
+        const cuentaFound = await cuenta.findOne({
+            where: {
+                no_cuenta: no_cuenta,
+                id_usuario: user_id
+            }
+        });
+
+        //Si no se encontro
+        if (!cuentaFound) {
+            return res.status(404).json({ message: 'Cuenta no encontrada o no pertenece al usuario' });
+        }
+
+        if(cuentaFound.estatus===2){
+            return res.status(500).json({message:'Esta cuenta está desactivada, actívala primero'});
+        }
+        //Pasamos el dinero a float
+        const money_parsed = parseFloat(monto);
+        const updatedSaldo = (parseFloat(cuentaFound.saldo.toString()) + money_parsed).toFixed(2);
+        
+        //Si es un deposito programado
+        //lo creamos y lo guardamos en la tabla de movimientos programados
+        const depoProgramado = movimientoProgramado.create({
+            id_usuario: user_id,
+            no_cuenta: no_cuenta,
+            descripcion: descripcion,
+            monto: monto,
+            dia:dia_depo,
+            estatus:1
+        });
+
+        //Si es programado mensual sera necesario actualizar los ingresos mensuales del usuario
+        userFound.ingresos_mensules += monto;
+        userFound.save();
+        return res.status(201).json({depoProgramado});
+    } catch (error) {
+        console.log("Error programando deposito", error);
+        return res.status(500).json({message:"ERROR PROGRAMANDO DEPOSITO"});
+    }
+}
+export {getMovimientos, getMovimientosProgramados, getMovByCuenta, postFondos, postFondosProgramados}
