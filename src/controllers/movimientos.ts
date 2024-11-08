@@ -4,6 +4,7 @@ import { tipoMovimiento } from "../models/tipomovimiento.model";
 import { movimientoProgramado } from "../models/movimientosprogramados.model";
 import { estatus } from "../models/estatus.model";
 
+//Get de Movimientos
 const getMovimientos = async(req: Request, res: Response)=>{
     try {
         const userId = (req as any).user.id;
@@ -30,6 +31,7 @@ const getMovimientos = async(req: Request, res: Response)=>{
     }
 }
 
+//Get de Movimientos Programados
 const getMovimientosProgramados = async(req:Request, res:Response)=>{
     try {
         const userId = (req as any).user.id;
@@ -54,4 +56,28 @@ const getMovimientosProgramados = async(req:Request, res:Response)=>{
         return res.status(500).json({message:"Error obteniendo movimientos programados"})
     }
 }
-export {getMovimientos, getMovimientosProgramados}
+
+//get Movimientos By Cuenta
+const getMovByCuenta = async(req:Request, res:Response)=>{
+    try {
+        const userID = (req as any).user.id;
+        const {noCuenta} = req.body;
+
+        const movimientosFound = await movimiento.findAll({
+            where:{
+                no_cuenta: noCuenta
+            },
+            include:[
+                {
+                    model: tipoMovimiento,
+                    as:'movimientoDetail',
+                }
+            ]
+        });
+        return res.status(200).json(movimientosFound)
+    } catch (error) {
+        console.log("Error obteniendo movimientos por no de cuenta", error);
+        return res.status(500).json({message: 'ERROR OBTENIENDO MOVIMIENTOS POR CUENTA'});
+    }
+}
+export {getMovimientos, getMovimientosProgramados, getMovByCuenta}

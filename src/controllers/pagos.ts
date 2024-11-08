@@ -461,6 +461,7 @@ const getSinglePago = async(req:Request, res:Response)=>{
     }
 }
 
+//Get pagos por Categoria
 const getPagosCategory = async(req:Request, res:Response)=>{
     try{
         const userId = (req as any).user.id;
@@ -509,6 +510,7 @@ const getPagosCategory = async(req:Request, res:Response)=>{
     }
 }
 
+//Get pagos por Subcategoria
 const getPagosSubcategory = async(req:Request, res:Response)=>{
     try{
         const userId = (req as any).user.id;
@@ -550,6 +552,8 @@ const getPagosSubcategory = async(req:Request, res:Response)=>{
         return res.status(500).json({message:'Error obteniendo pagos ', error});
     }
 }
+
+//Get pagos por categoria y subcategoria
 const getPagosCatSub = async(req:Request, res:Response)=>{
     try{
         const userId = (req as any).user.id;
@@ -821,4 +825,39 @@ const reemboslarPago = async(req:Request, res:Response)=>{
         return res.status(500).json({message:'Error reembolsando pago'});
     }
 };
-export{postPago, updatePago, getPagos, getSinglePago, getPagosCategory, getPagosSubcategory, getPagosCatSub, applyProgrammedPagos, reemboslarPago, getPagosProgramados, updatePagoProgramado, applyPagosPendientes}
+
+const getPagosByCuenta = async(req: Request, res:Response)=>{
+    try {
+        const userID = (req as any).user.id;
+        const {noCuenta} = req.body;
+
+        const pagosFound = await pagos.findAll({
+            where:{
+                no_cuenta: noCuenta
+            },
+            include:[
+                {
+                    model: category,
+                    attributes: ['nombre'], // Specify the attributes you want to retrieve from Category
+                },
+                {
+                    model: negocio,
+                    attributes: ['nombre']
+                },
+                {
+                    model: tipospagos,
+                    attributes:['tipo']
+                },
+                {
+                    model:estatuspagos,
+                    attributes:['estatus_pagos']
+                }
+            ]
+        });
+        return res.status(200).json(pagosFound);
+    } catch (error) {
+        console.log("Error obteniendo pagos por no de cuenta", error);
+        return res.status(500).json({message:"ERROR OBTENIENDO PAGOS POR NO DE CUENTA"});
+    }
+}
+export{postPago, updatePago, getPagos, getSinglePago, getPagosCategory, getPagosSubcategory, getPagosCatSub, applyProgrammedPagos, reemboslarPago, getPagosProgramados, updatePagoProgramado, applyPagosPendientes, getPagosByCuenta}

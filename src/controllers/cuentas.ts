@@ -511,6 +511,7 @@ const applyProgrammedDeposits = async () =>{
     }
 };
 
+//Update Movimientos Programados
 const updFondosProgra = async(req:Request, res:Response)=>{
     try{
         const UserId = (req as any).user.id;
