@@ -191,4 +191,45 @@ const deleteSubcategory = async(req:Request, res:Response)=>{
         return res.status(500).json({message:'Error eliminando subcategoria'});
     }
 }
-export{asignarSubcategoria, getSubcategorias, getSingleSubcategorias, deleteSubcategory};
+
+const getCatBySub = async(req:Request, res:Response)=>{
+    try {
+         //Obtenemos ID de usuario
+         const id_user = (req as any).user.id;
+         const catId = req.params;
+
+         //Validamos que exista
+         if(!findingUser(id_user)){
+             return res.status(404).json({message:'Este usuario no ha sido encontrado'});
+         }
+ 
+         const auxSub = await subcategory.findAll({
+             where:{
+                 id_user: id_user,
+                 id_categoria: catId
+             },
+             attributes:{
+                 exclude:['id_negocio','id_user']
+             },
+             include: [
+                 {
+                     model: category, // Include the category details
+                     attributes: ['nombre'] // Specify the attributes you want to retrieve from Category
+                 },
+                 {
+                     model: negocio, // Include the negocio (business) details
+                     attributes: ['nombre'] // Specify the attributes you want to retrieve from Negocio
+                 }
+             ]
+         });
+ 
+         if(!auxSub || auxSub.length === 0){
+             return res.status(404).json({message:'Este user no ha agregado subcategorias'});
+         }
+         res.status(200).json(auxSub);
+        
+    } catch (error) {
+        
+    }
+}
+export{asignarSubcategoria, getSubcategorias, getSingleSubcategorias, deleteSubcategory, getCatBySub};
