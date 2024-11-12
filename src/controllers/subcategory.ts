@@ -192,11 +192,11 @@ const deleteSubcategory = async(req:Request, res:Response)=>{
     }
 }
 
-const getCatBySub = async(req:Request, res:Response)=>{
+const getSubByCat = async(req:Request, res:Response)=>{
     try {
          //Obtenemos ID de usuario
          const id_user = (req as any).user.id;
-         const catId = req.params;
+         const {catId} = req.params;
 
          //Validamos que exista
          if(!findingUser(id_user)){
@@ -207,9 +207,6 @@ const getCatBySub = async(req:Request, res:Response)=>{
              where:{
                  id_user: id_user,
                  id_categoria: catId
-             },
-             attributes:{
-                 exclude:['id_negocio','id_user']
              },
              include: [
                  {
@@ -232,4 +229,4 @@ const getCatBySub = async(req:Request, res:Response)=>{
         
     }
 }
-export{asignarSubcategoria, getSubcategorias, getSingleSubcategorias, deleteSubcategory, getCatBySub};
+export{asignarSubcategoria, getSubcategorias, getSingleSubcategorias, deleteSubcategory, getSubByCat};
