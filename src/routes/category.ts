@@ -6,7 +6,7 @@ const router = Router();
 router.post('/', checkJwt,postCategory);
 router.get('/',checkJwt, getCategory);
 router.get('/totalBudget',checkJwt,getTotalBudget);
-router.get('/activadas',checkJwt,getActivaCategories);
+router.get('/activas',checkJwt,getActivaCategories);
 router.get('/presupuestos',checkJwt, getBudgetSpent);
 router.get('/:category_id',checkJwt, getSingleCategory);
 router.put('/:category_id', checkJwt,updateCategory);

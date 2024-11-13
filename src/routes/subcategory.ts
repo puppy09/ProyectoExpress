@@ -4,8 +4,9 @@ import { asignarSubcategoria, deleteSubcategory, getSubByCat, getSingleSubcatego
 const router = Router();
 
 router.post('/',checkJwt, asignarSubcategoria);
-router.get('/', checkJwt, getSubcategorias);
 router.get('/:catId',checkJwt, getSubByCat);
+router.get('/', checkJwt, getSubcategorias);
+
 router.get('/:id_categoria',checkJwt, getSingleSubcategorias);
 router.delete('/', checkJwt, deleteSubcategory);
 

@@ -21,6 +21,8 @@ const postPago = async(req: Request, res:Response)=>{
             //Obtenemos Parametros del pago
             const {num_cuenta, descripcion, monto, categoria, subcategoria} = req.body;
 
+            console.log('Received payment request:', req.body);
+
             //Validar Existencia de Cuenta y que pertenezca al usuario
             const cuentaFound = await cuenta.findOne({
                 where:{
@@ -32,30 +34,10 @@ const postPago = async(req: Request, res:Response)=>{
                 return res.status(404).json({message: 'Cuenta no encontrada o no pertenece al usuario'});
             }
 
-            //Validar Existencia Categoria
-            const categoryFound = await category.findByPk(categoria);
-            if(!categoryFound){
-                return res.status(404).json({ message: 'Categoria no encontrada' });
-            }
-
-            const isValid = await subcategory.findOne({
-                where:{
-                    id_categoria:categoria,
-                    id_negocio:subcategoria
-                }
-            });
-            if(!isValid){
-                return res.status(404).json({message:'Subcategoria no asignada a categoria'});
-            }
-
-            //Validar Tipo de Pago
-            /*const tipoPagoFound = await tipospagos.findByPk(tipo_pago);
-            if(!tipoPagoFound){
-                return res.status(404).json({message: 'Tipo Pago invalido'});
-            }*/
-
+            const auxMonto=parseFloat(monto);
+            console.log()
             //Si no se ingresa un monto valido
-            if (!monto || isNaN(monto) || monto<=0) {
+            if (auxMonto<=0) {
                 return res.status(400).json({ message: 'Cantidad inválida' });
             }
             if(cuentaFound.saldo<monto){
@@ -64,43 +46,6 @@ const postPago = async(req: Request, res:Response)=>{
 
             //Obtenemos Fecha
             const currentDate: Date = new Date();
-
-            //En caso de que sea un pago de unica exhibicion
-            //Obtenemos la fecha del dia en el que se haga la compra
-            //Solo se hara un pago
-            /*var numPagosHechos;
-            var numPagoTotales;
-            var auxEstatusPago;
-            var dia;
-
-            if (tipo_pago == 2){
-                //La fecha de pago sera la brindada por el usuario
-                dia = dia_pago;
-                numPagosHechos = 0;
-                numPagoTotales = total_pagos;
-                auxEstatusPago = 1 
-
-                const newProgrammedPago = await pagosprogramados.create({
-                    id_usuario: userId,
-                    no_cuenta: num_cuenta,
-                    descripcion: descripcion,
-                    monto:monto,
-                    categoria:categoria,
-                    subcategoria:subcategoria,
-                    tipo_pago: tipo_pago,
-                    dia_programado: dia,
-                    pagos_hechos: numPagosHechos,
-                    total_pagos: numPagoTotales,
-                    estatus_pago: auxEstatusPago
-                });
-                return res.status(201).json({
-                    message: 'Pago programado con exito',
-                    pago:newProgrammedPago
-                });
-            }*/
-   
-            //dia = dia || currentDate.getDate();
-            //Si es un pago que sea por por abonos
             const newPago = await pagos.create({
                 id_usuario: userId,
                 no_cuenta: num_cuenta,
@@ -137,12 +82,13 @@ const postPagoProgramado = async(req:Request, res:Response)=>{
     try {
         console.log("programando pago");
         const userId = (req as any).user.id;
-        const {num_cuenta, descripcion, monto, categoria, subcategoria, tipo_pago, dia_pago, total_pagos} = req.body;
+        const {num_cuenta, descripcion, monto, categoria, subcategoria, dia_pago, total_pagos} = req.body;
+        const auxMonto = parseFloat(monto);
         const newProgrammedPago = await pagosprogramados.create({
             id_usuario: userId,
             no_cuenta: num_cuenta,
             descripcion: descripcion,
-            monto:monto,
+            monto:auxMonto,
             categoria:categoria,
             subcategoria:subcategoria,
             tipo_pago: 2,
