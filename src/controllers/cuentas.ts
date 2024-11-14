@@ -80,7 +80,7 @@ const getCuentas = async(req: Request, res: Response)=>{
             ]
         })
         if(cuentas.length === 0 || !cuentas){
-            return res.status(404).send('Este usuario no tiene ninguna cuenta agregada');
+            return res.status(404).json({message:'Este usuario no tiene ninguna cuenta agregada'});
         }
         return res.send(cuentas);
    }catch(error){
@@ -99,7 +99,7 @@ const getCuentasActivas = async(req: Request, res: Response)=>{
              }
          });
          if(cuentas.length === 0 || !cuentas){
-             return res.status(404).send('Este usuario no tiene ninguna cuenta agregada');
+             return res.status(404).json({message:"Este usuario no tiene ninguna cuenta agregada"});
          }
          return res.send(cuentas);
     }catch(error){
@@ -317,10 +317,6 @@ const habilitarCuenta = async(req:Request, res:Response)=>{
 
         //Obtenemos ID de la cuenta
         const { cuenta_id } = req.params;
-        //const auxCuentaId = parseInt(cuenta_id);
-        /*if(!findingCuenta(auxCuentaId, user_id)){
-            return res.status(404).json({message:'Esta cuenta no existe o no pertenece a este usuario'});
-        }*/
         const cuentaFound = await cuenta.findOne({
             where:{
                 ID: cuenta_id,
@@ -332,7 +328,7 @@ const habilitarCuenta = async(req:Request, res:Response)=>{
         }
 
         if(cuentaFound.estatus === 1){
-            return res.status(200).json({message:'Esta cuenta ya esta activa'});
+            return res.status(500).json({message:'Esta cuenta ya esta activa'});
         }
         cuentaFound.estatus=1;
         cuentaFound.save();
@@ -367,7 +363,7 @@ const deshabilitarCuenta = async(req:Request, res:Response)=>{
         }
 
         if(cuentaFound.estatus === 2){
-            return res.status(200).json({message:'Esta cuenta ya esta inactiva'});
+            return res.status(500).json({message:'Esta cuenta ya esta inactiva'});
         }
         cuentaFound.estatus=2;
         cuentaFound.save();
