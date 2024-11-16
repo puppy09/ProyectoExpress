@@ -140,15 +140,6 @@ const updatePago = async(req:Request, res:Response)=>{
         if (!pagoFound) {
             return res.status(404).json({ message: 'Pago no encontrado o no pertenece a este usuario' });
         }
-        const isValid = await subcategory.findOne({
-            where:{
-                id_categoria:categoria,
-                id_negocio:subcategoria
-            }
-        });
-        if(!isValid){
-            return res.status(404).json({message:'Subcategoria no asignada a categoria'});
-        }
 
         const paymentDate = new Date(pagoFound.fecha);
 
@@ -157,7 +148,7 @@ const updatePago = async(req:Request, res:Response)=>{
         paymentDate.getFullYear() === currentDate.getFullYear();
         
         if (!isSameMonth) {
-            return res.status(403).json({ message: 'No se puede modificar un pago que no sea del mes actual' });
+            return res.status(500).json({ message: 'No se puede modificar un pago que no sea del mes actual' });
         }
         //Si no se ingresa un monto valido
         if (!monto || isNaN(monto) || monto<=0) {
@@ -187,11 +178,12 @@ const updatePago = async(req:Request, res:Response)=>{
                 no_cuenta:cuentaFound.no_cuenta,
                 descripcion:`Ajuste de monto de pago con ID ${pagoFound.id_pago}`,
                 monto:auxDiferencia,
-                tipo_movimiento:1,
+                tipo_movimiento:2,
                 fecha: currentDate
             });
 
         }
+        pagoFound.no_cuenta = no_cuenta || pagoFound.no_cuenta;
         pagoFound.monto = monto || pagoFound.monto;
         pagoFound.descripcion = descripcion || pagoFound.descripcion;
         pagoFound.categoria = categoria || pagoFound.categoria;
