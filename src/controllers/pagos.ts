@@ -41,7 +41,7 @@ const postPago = async(req: Request, res:Response)=>{
                 return res.status(400).json({ message: 'Cantidad inválida' });
             }
             if(cuentaFound.saldo<monto){
-                return res.status(500).json({message:'Error aplicando pago, saldos insuficientes'});
+                return res.status(500).json({message:'Saldos insuficientes'});
             }
 
             //Obtenemos Fecha
@@ -116,7 +116,7 @@ const updatePago = async(req:Request, res:Response)=>{
         const {pagoId} = req.params;
 
         //Obtenemos los datos del pago que se modificaran
-        const {no_cuenta,descripcion, monto, categoria, subcategoria, dia_pago}=req.body;
+        const {no_cuenta,descripcion, monto, categoria, subcategoria}=req.body;
 
         //Obtenemos cuenta del usuario
         const cuentaFound = await cuenta.findOne({
@@ -734,9 +734,6 @@ const reemboslarPago = async(req:Request, res:Response)=>{
     try{
         //Obtenemos Id del Usuario
         const userId = (req as any).user.id;
-        if(!findingUser){
-            return res.status(404).json({message:'El user no ha sido encontrado'});
-        }
         const {id_pago} = req.params;
         const pagoFound = await pagos.findByPk(id_pago);
 

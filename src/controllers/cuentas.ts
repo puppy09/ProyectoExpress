@@ -373,7 +373,6 @@ const deshabilitarCuenta = async(req:Request, res:Response)=>{
     }
 }
 
-
 const applyProgrammedDeposits = async () =>{
     const hoy = new Date();
     const dia= hoy.getDate();
@@ -446,4 +445,18 @@ const updFondosProgra = async(req:Request, res:Response)=>{
     }
 }
 
-export { postCuenta, getCuentas, updateCuentas, habilitarCuenta, deshabilitarCuenta, applyProgrammedDeposits, getCuentasActivas, updFondosProgra };
+const gettotalCuentas = async(req:Request, res:Response)=>{
+    try {
+        const userId = (req as any).user.id;
+        const sumaCuentas = await cuenta.sum('saldo', {
+            where:{
+                id_usuario: userId
+            }
+        });
+        return res.status(200).json({sumaCuentas});
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({message:'ERROR OBTENIENDO SUMA DE CUENTAS'});
+    }
+}
+export { postCuenta, getCuentas, updateCuentas, habilitarCuenta, deshabilitarCuenta, applyProgrammedDeposits, getCuentasActivas, updFondosProgra, gettotalCuentas };
