@@ -224,13 +224,15 @@ const getCuentasActivas = async(req: Request, res: Response)=>{
 
 const updateCuentas = async (req: Request, res: Response) => {
     try {
+        console.log("SE EJECUTO UPD DE CUENTAS");
         // Get user ID and account ID from the request
         const user_id = (req as any).user.id;
         const { cuenta_id } = req.params;
 
         // Get parameters from the request body
-        const { no_cuenta, fecha_vencimiento, nombre, saldo, estatus } = req.body;
-
+        const { no_cuenta, fecha_vencimiento, nombre, saldo } = req.body;
+        console.log("Body");
+        console.log(req.body);
         // Validate if the user exists
         const userFound = await user.findByPk(user_id);
         if (!userFound) {
@@ -253,51 +255,20 @@ const updateCuentas = async (req: Request, res: Response) => {
             return res.status(400).json({ message: 'Fecha de expiración inválida' });
         }
 
-        // Validate if the new `no_cuenta` already exists, but only if `no_cuenta` is provided
-        if (no_cuenta) {
-            const aux_cuenta = await cuenta.findOne({
-                where: {
-                    no_cuenta: no_cuenta
-                }
-            });
-            if (aux_cuenta) {
-                return res.status(500).json({ message: 'Número de cuenta inválido, esta cuenta ya ha sido registrada' });
-            }
-        }
 
         // If `saldo` is provided, validate that it's a valid number
         if (saldo !== undefined && (isNaN(saldo) || saldo < 0)) {
             return res.status(400).json({ message: 'Cantidad inválida para el saldo' });
         }
 
-        // Update the account with new values or keep the old ones if not provided
         cuentaFound.nombre = nombre !== undefined ? nombre : cuentaFound.nombre;
         cuentaFound.saldo = saldo !== undefined ? saldo : cuentaFound.saldo;
         cuentaFound.fecha_vencimiento = fecha_vencimiento !== undefined ? fecha_vencimiento : cuentaFound.fecha_vencimiento;
-        
-        // Save the old `no_cuenta` before updating it
-        const oldCuenta = cuentaFound.no_cuenta;
-        
-        // If `no_cuenta` is provided, update it; otherwise, keep the old one
-        cuentaFound.no_cuenta = no_cuenta !== undefined ? no_cuenta : cuentaFound.no_cuenta;
-        
-        // If `estatus` is provided, update it; otherwise, keep the old one
-        cuentaFound.estatus = estatus !== undefined ? estatus : cuentaFound.estatus;
 
-        // Save the updated account
         await cuentaFound.save();
-
-        // If `no_cuenta` was updated, update it in all the related `pagos`
-        if (no_cuenta) {
-            const updatePayments = await pagos.update(
-                { no_cuenta: cuentaFound.no_cuenta },
-                {
-                    where: { no_cuenta: oldCuenta }
-                }
-            );
-        }
-
         // Return the updated account information
+        console.log("Final");
+        console.log(cuentaFound);
         res.status(200).json(cuentaFound);
     } catch (error) {
         console.error('Error actualizando cuenta:', error);
