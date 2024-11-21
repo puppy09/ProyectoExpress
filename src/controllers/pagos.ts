@@ -12,7 +12,7 @@ import { findingUser } from "../utils/userFound.handle";
 import { pagosprogramados } from "../models/pagosprogramados.model";
 import { movimiento } from "../models/movimientos.model";
 import { pagospendientes } from "../models/pagospendientes.model";
-
+import {Op} from 'sequelize';
 const postPago = async(req: Request, res:Response)=>{  
     try{
         //Obtenemos id del usuario
@@ -306,6 +306,29 @@ const updatePagoProgramado = async(req:Request, res:Response)=>{
         return res.status(500).json({message:'Error actualizando pagos'});
     } 
 }
+
+const getTotalGastado = async(req:Request, res:Response)=>{
+    try {
+
+        const userId = (req as any).user.id;
+        
+        const startMes = new Date(new Date().getFullYear(), new Date().getMonth(),1);
+        const startMesSig = new Date(new Date().getFullYear(), new Date().getMonth()+1,1);
+        const auxMonto = await pagos.sum('monto',{
+            where:{
+                id_usuario: userId,
+                fecha: {
+                    [Op.gte]: startMes,
+                    [Op.lt]: startMesSig
+                }
+            }});
+            const totalMonto = auxMonto.toFixed(2);
+        return res.status(200).json({totalMonto});
+    } catch (error) {
+        console.log("ERROR OBTENIENDO SUMA MENSUAL", error);
+        return res.status(500).json({message: 'Error obteniendo suma gastada'});
+    }
+}
 //Obtener todos los pagos que ha hecho un Usuario
 const getPagos = async(req:Request, res:Response)=>{
     try{
@@ -424,6 +447,7 @@ const getSinglePago = async(req:Request, res:Response)=>{
         return res.status(500).json({message:'Error obteniendo pago ', error});
     }
 }
+
 
 //Get pagos por Categoria
 const getPagosCategory = async(req:Request, res:Response)=>{
@@ -821,4 +845,4 @@ const getPagosByCuenta = async(req: Request, res:Response)=>{
         return res.status(500).json({message:"ERROR OBTENIENDO PAGOS POR NO DE CUENTA"});
     }
 }
-export{postPago, postPagoProgramado, updatePago, getPagos, getSinglePago, getPagosCategory, getPagosSubcategory, getPagosCatSub, applyProgrammedPagos, reemboslarPago, getPagosProgramados, updatePagoProgramado, applyPagosPendientes, getPagosByCuenta}
+export{getTotalGastado,postPago, postPagoProgramado, updatePago, getPagos, getSinglePago, getPagosCategory, getPagosSubcategory, getPagosCatSub, applyProgrammedPagos, reemboslarPago, getPagosProgramados, updatePagoProgramado, applyPagosPendientes, getPagosByCuenta}
