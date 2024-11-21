@@ -13,8 +13,6 @@ const addSubcategoria = async(req:Request, res:Response)=>{
         if(!categoryFound){
             return res.status(404).json({message:'Categoria grupal no encontrada'});
         }
-
-        console.log(`id negocio ${id_negocio}`)
         const negocioFound = await negocio.findByPk(id_negocio);
         console.log(negocioFound);
         if(!negocioFound){

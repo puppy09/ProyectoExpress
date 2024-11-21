@@ -20,7 +20,8 @@ interface pagosprogramadosAttributes{
     dia_programado:number,
     pagos_hechos:number,
     total_pagos:number,
-    estatus_pago:number
+    estatus_pago:number,
+    fecha: Date
 }
 interface pagosprogramadosCreationAttributes extends Optional<pagosprogramadosAttributes, 'id_pagoprogramado'>{}
 
@@ -38,6 +39,7 @@ class pagosprogramados extends Model<pagosprogramadosAttributes, pagosprogramado
     public pagos_hechos!: number;
     public total_pagos!: number;
     public estatus_pago!: number;
+    public fecha!:Date;
 }
 
 pagosprogramados.init({
@@ -112,6 +114,10 @@ pagosprogramados.init({
             model: tipospagos,
             key:'id'
         },
+        allowNull:false
+    },
+    fecha:{
+        type:DataTypes.DATE,
         allowNull:false
     }
 },{

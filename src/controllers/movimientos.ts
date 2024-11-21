@@ -20,6 +20,9 @@ const getMovimientos = async(req: Request, res: Response)=>{
                     as:'movimientoDetail',
                     attributes:['tipo_movimiento']
                 }
+            ],
+            order:[
+                ['fecha', 'DESC']
             ]
         });
         if(movimientosFound.length===0){
@@ -86,6 +89,7 @@ const getMovByCuenta = async(req:Request, res:Response)=>{
 
 const postFondos = async(req:Request, res:Response)=>{
     try {
+        console.log('POSTEANDO FONDOS');
         //Obtenemos ID del usuario
         const user_id = (req as any).user.id;
         
@@ -136,7 +140,8 @@ const postFondos = async(req:Request, res:Response)=>{
                 tipo_movimiento:1,
                 fecha: currentDate,
             });
-            return res.status(201).json({ message: 'Saldo actualizado con éxito', cuenta: cuentaFound });
+            console.log(cuentaFound);
+            return res.status(201).json({ cuentaFound });
     } catch (error) {
         console.log("Error añadiendo gondos", error);
         return res.status(500).json({message: "ERROR AÑADIENDO FONDOS A CUENTA"});

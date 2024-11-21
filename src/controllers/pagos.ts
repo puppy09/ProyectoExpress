@@ -84,6 +84,7 @@ const postPagoProgramado = async(req:Request, res:Response)=>{
         const userId = (req as any).user.id;
         const {num_cuenta, descripcion, monto, categoria, subcategoria, dia_pago, total_pagos} = req.body;
         const auxMonto = parseFloat(monto);
+        const currentDate: Date = new Date();
         const newProgrammedPago = await pagosprogramados.create({
             id_usuario: userId,
             no_cuenta: num_cuenta,
@@ -95,7 +96,8 @@ const postPagoProgramado = async(req:Request, res:Response)=>{
             dia_programado: dia_pago,
             pagos_hechos: 0,
             total_pagos: total_pagos,
-            estatus_pago: 1
+            estatus_pago: 1,
+            fecha: currentDate
         });
         return res.status(201).json({
             message: 'Pago programado con exito',
@@ -330,6 +332,9 @@ const getPagos = async(req:Request, res:Response)=>{
                     model:estatuspagos,
                     attributes:['estatus_pagos']
                 }
+            ],
+            order:[
+                ['fecha', 'DESC']
             ]
         })
         if((await allPagos).length===0){
@@ -366,7 +371,11 @@ const getPagosProgramados = async(req:Request, res:Response)=>{
                     model:estatuspagos,
                     attributes:['estatus_pagos']
                 }
+            ],
+            order:[
+                ['fecha', 'DESC']
             ]
+
         });
 
         if(allPagos.length===0){
