@@ -48,6 +48,14 @@ const postNegocio = async (req: Request, res: Response) => {
     }
 };
 
+const getRubros = async (req: Request, res:Response)=>{
+    try {
+        const rubros = await negocioRubro.findAll();
+        return res.status(200).json(rubros);
+    } catch (error) {
+        return res.status(500).json({mesage:'ERROR OBTENIENDO RUBROS DE NEGOCIOS'});
+    }
+}
 const getAllNegocios = async(req:Request, res:Response)=>{
     try{
         //Obtenemos id del usuario
@@ -122,4 +130,4 @@ const getNegociosByCategory = async(req:Request, res:Response)=>{
 
     }
 }
-export{postNegocio, getAllNegocios, getNegociosByCategory };
+export{getRubros,postNegocio, getAllNegocios, getNegociosByCategory };
