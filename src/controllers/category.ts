@@ -372,4 +372,57 @@ const getBudgetSpent = async(req:Request, res:Response)=>{
         return res.status(500).json({message:'ERROR OBTENIENDO PRESUPUESTO GASTADO'});
     }
 }
-export {postCategory, getCategory, updateCategory, activarCategory, desactivarCategory, getSingleCategory, getTotalBudget, getActivaCategories, getBudgetSpent};
+
+const getTotalSpent = async(req:Request, res:Response)=>{
+    try {
+        const userID = (req as any).user.id;
+
+        const inicioMes = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+        const finMes = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0);
+        const categoriasFound = await category.findAll({
+            where:{
+                id_user:userID
+            }
+        });
+
+        const totalGastado = await pagos.sum('monto',{
+            where:{
+                fecha:{
+                    [Op.between]:[inicioMes, finMes],
+                },
+            }
+        });
+        const totalGastadoFixed = totalGastado ? parseFloat(totalGastado.toFixed(2)):0;
+        console.log(totalGastado);
+        const categoriasPorcentaje = await Promise.all(categoriasFound.map(async (category)=>{
+            const totalGastadoCat = await pagos.sum('monto',{
+                where:{
+                    categoria: category.ID,
+                    fecha:{
+                        [Op.between]:[inicioMes, finMes],
+                    },
+                },
+            });
+
+            const totalGastadoCatFixed = totalGastadoCat ? parseFloat(totalGastadoCat.toFixed(2)) : 0;
+            const percentage = totalGastado > 0 ? (totalGastadoCatFixed / totalGastadoFixed) * 100 : 0;
+            //totalGastadoCat.toFixed(2);
+            return {
+                categoryId: category.ID,
+                categoryNombre: category.nombre,
+                totalSpent: totalGastadoCatFixed || 0,
+                percentage: percentage.toFixed(2), // Round to two decimal places
+            };
+            
+        }));
+        return res.status(200).json({
+            totalGastadoFixed,
+            categories: categoriasPorcentaje
+        });
+        
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({error});
+    }
+}
+export {getTotalSpent, postCategory, getCategory, updateCategory, activarCategory, desactivarCategory, getSingleCategory, getTotalBudget, getActivaCategories, getBudgetSpent};
