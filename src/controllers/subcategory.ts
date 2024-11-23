@@ -229,4 +229,54 @@ const getSubByCat = async(req:Request, res:Response)=>{
         
     }
 }
-export{asignarSubcategoria, getSubcategorias, getSingleSubcategorias, deleteSubcategory, getSubByCat};
+
+const createAsosiaciones = async(req:Request, res:Response)=>{
+    try {
+        const userID = (req as any).user.id;
+        const {categoria, negocios} = req.body;
+
+        const results = [];
+        for(const negocioItem of negocios){
+            let negocioID = null;
+
+            if(negocioItem.id_negocio){
+                negocioID = negocioItem.id_negocio;
+            }
+            if(negocioItem.nuevo_negocio){
+                const {nombre, tipo_negocio} = negocioItem.nuevo_negocio;
+                const newNegocio = await negocio.create({
+                    nombre,
+                    tipo_negocio,
+                    id_creador: userID
+                });
+                negocioID = newNegocio.id_negocio;
+            }
+
+            if(negocioID){
+                const asociacionExistente = await subcategory.findOne({
+                    where:{
+                        id_categoria: categoria,
+                        id_negocio: negocioID,
+                        id_user: userID
+                    }
+                });
+                if(asociacionExistente){
+                    results.push({negocioID, sucess: false, error: 'Ya se encuentra asignado'});
+                    continue;
+                }
+
+                const newSubcategoria = await subcategory.create({
+                    id_categoria: categoria,
+                    id_negocio: negocioID,
+                    id_user: userID
+                });
+                results.push({negocioID, success: true , subcategory: newSubcategoria});
+            }
+        }
+        return res.status(201).json({message:'Completado', results});
+    } catch (error) {
+        return res.status(500).json({ message: 'Error procesando asociaciones' });
+    }
+}
+
+export{createAsosiaciones, asignarSubcategoria, getSubcategorias, getSingleSubcategorias, deleteSubcategory, getSubByCat};

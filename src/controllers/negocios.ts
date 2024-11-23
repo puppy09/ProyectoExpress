@@ -91,7 +91,7 @@ const getAllNegocios = async(req:Request, res:Response)=>{
     }
 }
 
-const getNegociosByCategory = async(req:Request, res:Response)=>{
+const getNegociosByRubro = async(req:Request, res:Response)=>{
     try{
 
         //Obtenemos id del usuario
@@ -130,4 +130,4 @@ const getNegociosByCategory = async(req:Request, res:Response)=>{
 
     }
 }
-export{getRubros,postNegocio, getAllNegocios, getNegociosByCategory };
+export{getRubros,postNegocio, getAllNegocios, getNegociosByRubro };

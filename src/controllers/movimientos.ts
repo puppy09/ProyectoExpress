@@ -208,4 +208,38 @@ const postFondosProgramados = async(req:Request, res:Response)=>{
         return res.status(500).json({message:"ERROR PROGRAMANDO DEPOSITO"});
     }
 }
-export {getMovimientos, getMovimientosProgramados, getMovByCuenta, postFondos, postFondosProgramados}
+
+const activarMovProgramado = async(req:Request, res:Response)=>{
+    try {
+        const {movPro} = req.params;
+        const movimientoFound = await movimientoProgramado.findByPk(movPro);
+        if(!movimientoFound){
+            return res.status(500).json({message:'ERROR ENCONTRANDO MOVIMIENTO PROGRAMADO'});
+        }
+        movimientoFound.estatus=1;
+        movimientoFound.save();
+        return res.status(200).json({movimientoFound});
+
+    } catch (error) {
+        console.log("Error activando movimiento");
+        return res.status(500).json({message:'Error activando movimiento'});
+    }
+}
+
+const desactivarMovProgramado = async(req:Request, res:Response)=>{
+    try {
+        const {movPro} = req.params;
+        const movimientoFound = await movimientoProgramado.findByPk(movPro);
+        if(!movimientoFound){
+            return res.status(500).json({message:'ERROR ENCONTRANDO MOVIMIENTO PROGRAMADO'});
+        }
+        movimientoFound.estatus=2;
+        movimientoFound.save();
+        return res.status(200).json({movimientoFound});
+        
+    } catch (error) {
+        console.log("Error activando pago");
+        return res.status(500).json({message:'Error actualizando estatus'});
+    }
+}
+export {activarMovProgramado, desactivarMovProgramado, getMovimientos, getMovimientosProgramados, getMovByCuenta, postFondos, postFondosProgramados}
