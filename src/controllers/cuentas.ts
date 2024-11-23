@@ -392,7 +392,7 @@ const applyProgrammedDeposits = async () =>{
 };
 
 //Update Movimientos Programados
-const updFondosProgra = async(req:Request, res:Response)=>{
+/*const updFondosProgra = async(req:Request, res:Response)=>{
     try{
         const UserId = (req as any).user.id;
         const {idMov} = req.params;
@@ -414,7 +414,7 @@ const updFondosProgra = async(req:Request, res:Response)=>{
         console.log(error);
         return res.status(500).json({message:'ERROR ACTUALIZANDO DEPOSITO PROGRAMADO'});
     }
-}
+}*/
 
 const gettotalCuentas = async(req:Request, res:Response)=>{
     try {
@@ -430,4 +430,4 @@ const gettotalCuentas = async(req:Request, res:Response)=>{
         return res.status(500).json({message:'ERROR OBTENIENDO SUMA DE CUENTAS'});
     }
 }
-export { postCuenta, getCuentas, updateCuentas, habilitarCuenta, deshabilitarCuenta, applyProgrammedDeposits, getCuentasActivas, updFondosProgra, gettotalCuentas };
+export { postCuenta, getCuentas, updateCuentas, habilitarCuenta, deshabilitarCuenta, applyProgrammedDeposits, getCuentasActivas, gettotalCuentas };

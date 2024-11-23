@@ -55,7 +55,7 @@ const getMovimientosProgramados = async(req:Request, res:Response)=>{
         if(movimientosFound.length===0){
             return res.status(403).json({message:"Este usuario no tiene movimientos programados"});
         }
-        return res.status(200).json({movimientosFound})
+        return res.status(200).json(movimientosFound);
     } catch (error) {
         console.log(error);
         return res.status(500).json({message:"Error obteniendo movimientos programados"})
@@ -200,7 +200,7 @@ const postFondosProgramados = async(req:Request, res:Response)=>{
         });
 
         //Si es programado mensual sera necesario actualizar los ingresos mensuales del usuario
-        userFound.ingresos_mensules += monto;
+        userFound.ingresos_mensules += parseFloat(monto);
         userFound.save();
         return res.status(201).json({depoProgramado});
     } catch (error) {
@@ -209,15 +209,57 @@ const postFondosProgramados = async(req:Request, res:Response)=>{
     }
 }
 
+const updFondosProgra = async(req:Request, res:Response)=>{
+    try{
+        const UserId = (req as any).user.id;
+        const {idMov} = req.params;
+        const {no_cuenta, monto, dia, estatus, descripcion} = req.body;
+
+        const usuarioFound = await user.findByPk(UserId);
+        if(!usuarioFound){
+            return res.status(404).json({message:'Usuario no encontrado'});
+        }
+
+        const auxMov = await movimientoProgramado.findByPk(idMov);
+        if(!auxMov){
+            return res.status(404).json({message:'Pago no encontrado'});
+        }
+
+        const auxDinero = auxMov.monto;
+        const auxDiferencia=auxDinero-monto;
+        
+        usuarioFound.ingresos_mensules-=auxDiferencia;
+        usuarioFound.save();
+
+        auxMov.no_cuenta = no_cuenta||auxMov.no_cuenta;
+        auxMov.monto = monto||auxMov.monto;
+        auxMov.dia=dia||auxMov.dia;
+        auxMov.estatus=estatus||auxMov.estatus;
+        auxMov.descripcion=descripcion||auxMov.descripcion;
+        auxMov.save();
+        return res.status(200).json({message:'Pago actualizado'});
+    }catch(error){
+        console.log(error);
+        return res.status(500).json({message:'ERROR ACTUALIZANDO DEPOSITO PROGRAMADO'});
+    }
+}
 const activarMovProgramado = async(req:Request, res:Response)=>{
     try {
         const {movPro} = req.params;
+        const userID = (req as any).user.id;
+        const usuarioFound = await user.findByPk(userID);
+
+        if(!usuarioFound){
+            return res.status(404).json({message:'Error usuario no encontrado'});
+        }
         const movimientoFound = await movimientoProgramado.findByPk(movPro);
         if(!movimientoFound){
             return res.status(500).json({message:'ERROR ENCONTRANDO MOVIMIENTO PROGRAMADO'});
         }
         movimientoFound.estatus=1;
         movimientoFound.save();
+        usuarioFound.ingresos_mensules+=movimientoFound.monto;
+        usuarioFound.save();
         return res.status(200).json({movimientoFound});
 
     } catch (error) {
@@ -228,13 +270,22 @@ const activarMovProgramado = async(req:Request, res:Response)=>{
 
 const desactivarMovProgramado = async(req:Request, res:Response)=>{
     try {
+
         const {movPro} = req.params;
+        const userID = (req as any).user.id;
+        const usuarioFound = await user.findByPk(userID);
+
+        if(!usuarioFound){
+            return res.status(404).json({message:'Error usuario no encontrado'});
+        }
         const movimientoFound = await movimientoProgramado.findByPk(movPro);
         if(!movimientoFound){
             return res.status(500).json({message:'ERROR ENCONTRANDO MOVIMIENTO PROGRAMADO'});
         }
         movimientoFound.estatus=2;
         movimientoFound.save();
+        usuarioFound.ingresos_mensules-=movimientoFound.monto;
+        usuarioFound.save();
         return res.status(200).json({movimientoFound});
         
     } catch (error) {
@@ -242,4 +293,4 @@ const desactivarMovProgramado = async(req:Request, res:Response)=>{
         return res.status(500).json({message:'Error actualizando estatus'});
     }
 }
-export {activarMovProgramado, desactivarMovProgramado, getMovimientos, getMovimientosProgramados, getMovByCuenta, postFondos, postFondosProgramados}
+export {updFondosProgra, activarMovProgramado, desactivarMovProgramado, getMovimientos, getMovimientosProgramados, getMovByCuenta, postFondos, postFondosProgramados}
