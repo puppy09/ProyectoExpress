@@ -1,9 +1,10 @@
 import { grupos } from "../models/grupos.model";
 import { miembros } from "../models/miembros_grupos.model"
-const ifMiembro =(id:number):boolean=>{
+const ifMiembro =(id:number, grupo:number):boolean=>{
     const miembroFound = miembros.findOne({
         where:{
-            id_usuario: id
+            id_usuario: id,
+            id_grupo:grupo
         }
     });
     if(!miembroFound){

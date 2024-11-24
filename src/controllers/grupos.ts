@@ -1,4 +1,4 @@
-import crypto from 'crypto';
+import crypto, { generateKey } from 'crypto';
 import { Request, Response } from "express";
 import { handleHttp } from "../utils/error.handle";
 import { user } from "../models/user.model";
@@ -8,15 +8,16 @@ import { Op } from 'sequelize';
 import { grupos } from "../models/grupos.model";
 import { geneToken } from '../utils/generateToken.handle';
 import { miembros } from '../models/miembros_grupos.model';
-import { ifMiembro, isCreador } from '../utils/miembros.handle';
+import nodemailer from "nodemailer";
 
 const postGrupos = async(req:Request, res:Response)=>{
     try{
         const UserId = (req as any).user.id;
         const {nombre, descripcion }= req.body;
 
-        if(!findingUser(UserId)){
-            return res.status(404).json({message:'Usuario no encontrado'});
+        const userFound = await user.findByPk(UserId);
+        if(!userFound){
+            return res.status(404).json({message:'Error, no existe el usuario'});
         }
         const groupToken = await geneToken();
         
@@ -27,7 +28,22 @@ const postGrupos = async(req:Request, res:Response)=>{
             fondos: 0,
             token:groupToken
         });
-        
+        const transporter = nodemailer.createTransport({
+            service: 'gmail',
+            auth:{
+                user: process.env.CORREO,
+                pass: process.env.CONTRA_CORREO
+            }
+        });
+
+        const mailOptions={
+            from: process.env.CORREO,
+            to: userFound.email,
+            subject: 'Sweeney - Grupo Creado',
+            text: `Has creado el grupo con nombre ${nombre}. El Token para acceder a él es ${groupToken}. Proporcionalo a tus futuros miembros`
+        };
+        await transporter.sendMail(mailOptions);
+
         const newMiembro = await miembros.create({
             id_grupo: newGrupo.id_grupo,
             id_usuario: UserId,
@@ -96,6 +112,7 @@ const getGruposMiembro = async(req:Request, res:Response)=>{
 
 const joinGrupo = async(req:Request, res:Response)=>{
     try{
+        console.log("SE UNIO A GRUPOOOOOOO");
         const UserId = (req as any).user.id;
         const{token} = req.body;
         if(!findingUser(UserId)){
@@ -109,7 +126,13 @@ const joinGrupo = async(req:Request, res:Response)=>{
         if(!auxGrupo){
             return res.status(404).json({message: 'Token inválido'});
         }
-        if(!ifMiembro){
+        const isMiembro = await miembros.findOne({
+            where:{
+                id_grupo: auxGrupo.id_grupo,
+                id_usuario: UserId
+            }
+        });
+        if(!isMiembro){
             const newMiembro = miembros.create({
                 id_grupo: auxGrupo.id_grupo,
                 id_usuario: UserId,
@@ -118,7 +141,9 @@ const joinGrupo = async(req:Request, res:Response)=>{
             });
             return res.status(200).json({message:'Te uniste al grupo exitosamente'});
         }
-        return res.status(200).json({message:"Ya eres miembro de este grupo"});
+        else{
+            return res.status(500).json({message:"Ya eres miembro de este grupo"});
+        }
     }catch(error){
         console.log(error);
         return res.status(500).json({message:'ERROR UNIENDOTE A GRUPO'});
