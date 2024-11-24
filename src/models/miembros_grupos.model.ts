@@ -8,7 +8,8 @@ interface miembrosAttributes{
     id:number
     id_grupo: number,
     id_usuario: number,
-    id_estatus: number
+    id_estatus: number,
+    tipo_usuario: string
 }
 
 interface miembrosCreationAttributes extends Optional<miembrosAttributes, 'id'>{}
@@ -18,6 +19,7 @@ class miembros extends Model<miembrosAttributes, miembrosCreationAttributes> imp
     public id_grupo!: number;
     public id_usuario!: number;
     public id_estatus!: number;
+    public tipo_usuario!: string;
 }
 
 miembros.init({
@@ -52,6 +54,10 @@ miembros.init({
         },
         onDelete: 'CASCADE',
         onUpdate: 'CASCADE'
+    },
+    tipo_usuario:{
+        type:DataTypes.STRING,
+        allowNull:false
     }
 },{
     sequelize,

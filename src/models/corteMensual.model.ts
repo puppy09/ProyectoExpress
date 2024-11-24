@@ -5,16 +5,18 @@ interface corteMensualAttributes{
     id_corte: number,
     id_usuario: number,
     mes: Date,
-    monto: number
+    total: number
 }
 
 interface corteMensualCreationAttributes extends Optional<corteMensualAttributes, 'id_corte'>{}
+
 
 class corteMensual extends Model <corteMensualAttributes, corteMensualCreationAttributes> implements corteMensualAttributes{
     public id_corte!: number;
     public id_usuario!: number;
     public mes!: Date;
-    public monto!: number;
+    public anio!: string;
+    public total!: number;
 }
 corteMensual.init({
     id_corte:{
@@ -30,13 +32,14 @@ corteMensual.init({
         type:DataTypes.DATE,
         allowNull: false
     },
-    monto:{
+    total:{
         type:DataTypes.FLOAT,
-        allowNull:false
+        allowNull:false,
+        defaultValue: 0
     }
 },{
     sequelize,
-    tableName:'tb_corte_corteMensual',
+    tableName:'tb_corte_mensual',
     timestamps:false
 });
 export{corteMensual};

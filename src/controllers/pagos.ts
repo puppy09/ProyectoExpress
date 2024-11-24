@@ -13,6 +13,7 @@ import { pagosprogramados } from "../models/pagosprogramados.model";
 import { movimiento } from "../models/movimientos.model";
 import { pagospendientes } from "../models/pagospendientes.model";
 import {Op} from 'sequelize';
+import { corteMensual } from "../models/corteMensual.model";
 const postPago = async(req: Request, res:Response)=>{  
     try{
         //Obtenemos id del usuario
@@ -21,6 +22,7 @@ const postPago = async(req: Request, res:Response)=>{
             //Obtenemos Parametros del pago
             const {num_cuenta, descripcion, monto, categoria, subcategoria} = req.body;
 
+            console.log(num_cuenta); 
             console.log('Received payment request:', req.body);
 
             //Validar Existencia de Cuenta y que pertenezca al usuario
@@ -71,6 +73,7 @@ const postPago = async(req: Request, res:Response)=>{
                 tipo_movimiento:2,
                 fecha: currentDate
             });
+            await updGastoMensual(userId, monto, currentDate);
             return res.status(201).json(newPago);
         }catch(error){
             console.log(error);
@@ -845,4 +848,33 @@ const getPagosByCuenta = async(req: Request, res:Response)=>{
         return res.status(500).json({message:"ERROR OBTENIENDO PAGOS POR NO DE CUENTA"});
     }
 }
-export{getTotalGastado,postPago, postPagoProgramado, updatePago, getPagos, getSinglePago, getPagosCategory, getPagosSubcategory, getPagosCatSub, applyProgrammedPagos, reemboslarPago, getPagosProgramados, updatePagoProgramado, applyPagosPendientes, getPagosByCuenta}
+
+const updGastoMensual = async(userID: number, monto: number, fechaPago: Date)=>{
+    const fechCorte = new Date(fechaPago.getFullYear(), fechaPago.getMonth(), 1);
+    const formattedDate = fechCorte.toISOString().split('T')[0]; // Extract 'YYYY-MM-DD'
+    console.log("FECHA FORMATEADAAA "+formattedDate); // Example output: '2024-11-01'
+    console.log("FECHA DE CORTEEEE " + fechCorte);
+    //const formattedMes = inicioMes.toISOString().split("T")[0]; // Format as YYYY-MM-DD
+    const gastoMensual = await corteMensual.findOne({
+        where:{
+            id_usuario: userID,
+            mes: formattedDate
+        }
+    });
+    console.log("gasto mensual "+ gastoMensual);
+    if(gastoMensual){
+        gastoMensual.total+=monto;
+        await gastoMensual.save();
+    }
+    else if(!gastoMensual){
+        const newCorte = await corteMensual.create({
+            id_usuario: userID,
+            mes: fechCorte,
+            total: 0
+        });
+        newCorte.total+=monto;
+        newCorte.save();
+    }
+    
+}
+export{updGastoMensual, getTotalGastado,postPago, postPagoProgramado, updatePago, getPagos, getSinglePago, getPagosCategory, getPagosSubcategory, getPagosCatSub, applyProgrammedPagos, reemboslarPago, getPagosProgramados, updatePagoProgramado, applyPagosPendientes, getPagosByCuenta}

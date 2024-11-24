@@ -31,7 +31,8 @@ const postGrupos = async(req:Request, res:Response)=>{
         const newMiembro = await miembros.create({
             id_grupo: newGrupo.id_grupo,
             id_usuario: UserId,
-            id_estatus: 1
+            id_estatus: 1,
+            tipo_usuario: 'CREADOR'
         });
         return res.status(200).json(newGrupo);
     }catch(error){
@@ -63,6 +64,7 @@ const getGruposCreados = async(req:Request, res:Response)=>{
 
 const getGruposMiembro = async(req:Request, res:Response)=>{
     try{
+        console.log("ENTRO A GRUPOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOS");
         const UserId = (req as any).user.id;
         if(!findingUser(UserId)){
             return res.status(404).json({message:'Usuario no encontrado'});
@@ -84,7 +86,7 @@ const getGruposMiembro = async(req:Request, res:Response)=>{
         if(GruposMiembro.length===0){
             return res.status(404).json({message:'Este usuario no es miembro de ningun grupo aun'});
         }
-        return res.status(200).json(GruposMiembro);
+        return res.send(GruposMiembro);
 
     }catch(error){
         console.log(error);
@@ -111,7 +113,8 @@ const joinGrupo = async(req:Request, res:Response)=>{
             const newMiembro = miembros.create({
                 id_grupo: auxGrupo.id_grupo,
                 id_usuario: UserId,
-                id_estatus: 1
+                id_estatus: 1,
+                tipo_usuario: 'MIEMBRO'
             });
             return res.status(200).json({message:'Te uniste al grupo exitosamente'});
         }

@@ -62,5 +62,6 @@ grupos.init({
     tableName:'tb_grupos',
     timestamps:false,
 });
+grupos.belongsTo(user, {foreignKey:'id_creador', as: 'creadorDetail'});
 
 export { grupos };
