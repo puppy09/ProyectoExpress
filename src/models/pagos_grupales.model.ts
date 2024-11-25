@@ -131,4 +131,5 @@ pagogrupal.belongsTo(negocio,{foreignKey: 'subcategoria'});
 pagogrupal.belongsTo(categoriagrupal,{foreignKey:'categoria'});
 pagogrupal.belongsTo(estatuspagos,{foreignKey:'estatus'});
 pagogrupal.belongsTo(tipospagos,{foreignKey:'tipo_pago'});
+pagogrupal.belongsTo(user, {foreignKey: 'id_usuario'});
 export{ pagogrupal };

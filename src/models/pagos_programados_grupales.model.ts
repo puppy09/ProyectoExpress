@@ -119,5 +119,6 @@ pagogrupalprogramado.init({
 //movimiento.hasOne(diaMov,{foreignKey:'id_mov', as:'movimientoDetail'});
 pagogrupalprogramado.belongsTo(negocio,{foreignKey: 'subcategoria'});
 pagogrupalprogramado.belongsTo(categoriagrupal,{foreignKey:'categoria'});
-pagogrupalprogramado.belongsTo(estatuspagos,{foreignKey:'estatus_pago'});
+pagogrupalprogramado.belongsTo(estatuspagos,{foreignKey:'estatus_pago', as:'estatusDetail'});
+pagogrupalprogramado.belongsTo(user,{foreignKey: 'id_usuario', as:'usuarioDetail'})
 export{ pagogrupalprogramado };

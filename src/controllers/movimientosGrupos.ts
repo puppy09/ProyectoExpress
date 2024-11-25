@@ -7,6 +7,7 @@ import { movimiento } from "../models/movimientos.model";
 import { movimientoProgramadoGrupal } from "../models/movimientosprogramados_grupal.model";
 import { user } from "../models/user.model";
 import { isMiembro } from "../utils/activeMember.handle";
+import { tipoMovimiento } from "../models/tipomovimiento.model";
 const addFondos = async(req:Request, res:Response)=>{
     try{
         const UserId = (req as any).user.id;
@@ -264,6 +265,18 @@ const getMovimientosGrupales = async(req:Request,res:Response)=>{
                 where:{
                     id_grupo: grupo
                 },
+                include:[
+                    {
+                        model: tipoMovimiento,
+                        as: 'movimientoDetail',
+                        attributes:['tipo_movimiento']
+                    },
+                    {
+                        model: user,
+                        as: 'userDetail',
+                        attributes:['nombre']
+                    }
+                ],
                 order:[
                     ['fecha', 'DESC']
                 ]

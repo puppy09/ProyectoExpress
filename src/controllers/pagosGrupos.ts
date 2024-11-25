@@ -10,6 +10,7 @@ import { pagos } from "../models/pagos.model";
 import { miembros } from "../models/miembros_grupos.model";
 import { negocio } from "../models/negocio.model";
 import { estatuspagos } from "../models/estatus_pagos.model";
+import { user } from "../models/user.model";
 
 const addPagoGrupal = async(req:Request, res:Response)=>{
     try{
@@ -291,14 +292,18 @@ const getPagosGrupales = async(req:Request, res:Response)=>{
                 id_estatus: 1
             }
         });
-        /*if(!isActivo){
+        if(!isActivo){
             return res.status(500).json({message:'Este user no esta activo'});
-        }*/
+        }
         const auxPagos = await pagogrupal.findAll({
             where:{
                 id_grupo: grupo
             },
             include: [
+                {
+                    model: user,
+                    attributes: ['nombre']
+                },
                 {
                     model: categoriagrupal,
                     attributes: ['categoria'], // Specify the attributes you want to retrieve from Category
@@ -322,6 +327,9 @@ const getPagosGrupales = async(req:Request, res:Response)=>{
         });
 
         if(auxPagos.length===0){
+            console.log("PAGOS"+auxPagos);
+            console.log("GRUPO"+grupo);
+            console.log("Usuario"+UserId);
             return res.status(404).json({message: 'Este grupo aun no ha hecho pagos'});
         }
         return res.status(200).json(auxPagos);
@@ -331,6 +339,59 @@ const getPagosGrupales = async(req:Request, res:Response)=>{
     }
 }
 
+const getPagosProgramados = async(req:Request, res:Response)=>{
+    try {
+        const UserId = (req as any).user.id;
+        const {grupo} = req.params;
+        const isActivo = await miembros.findOne({
+            where:{
+                id_grupo: grupo,
+                id_usuario:  UserId,
+                id_estatus: 1
+            }
+        });
+        if(!isActivo){
+            return res.status(500).json({message:'Este user no esta activo'});
+        }
+        const auxPagos = await pagogrupalprogramado.findAll({
+            where:{
+                id_grupo: grupo
+            },
+            include: [
+                {
+                    model: categoriagrupal,
+                    attributes: ['categoria'], // Specify the attributes you want to retrieve from Category
+                },
+                {
+                    model: negocio,
+                    attributes: ['nombre']
+                },
+                {
+                    model:estatuspagos,
+                    as:'estatusDetail',
+                    attributes:['estatus_pagos']
+                },
+                {
+                    model: user,
+                    as:'usuarioDetail',
+                    attributes:['nombre']
+                }
+            ]
+        });
+
+        if(auxPagos.length===0){
+            console.log("PAGOS"+auxPagos);
+            console.log("GRUPO"+grupo);
+            console.log("Usuario"+UserId);
+            return res.status(404).json({message: 'Este grupo aun no ha hecho pagos'});
+        }
+        return res.status(200).json(auxPagos);
+
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({message:'ERROR OBTENIENDO PAGOS PROGRAMADOS'});
+    }
+}
 const getPagosGrupalesByCategory = async(req:Request, res:Response)=>{
     try{
         const UserId = (req as any).user.id;
@@ -719,4 +780,4 @@ const updPagoGruProgramado = async(req: Request, res:Response)=>{
         return res.status(500).json({message:'ERROR ACUTUALIZANDO PAGO PROGRAMADO'});
     }
 }
-export {addPagoProgramadoGrupal,addPagoGrupal, updatePagoGrupal, reembolsoGrupal, getPagosGrupales, getPagosGrupalesByCategory, getPagosGrupalesBySubcategory, getPagosGrupalesByCatandSub, applyGruProgrammedPagos, applyGruPendientesPagos, updPagoGruProgramado};
+export {getPagosProgramados,addPagoProgramadoGrupal,addPagoGrupal, updatePagoGrupal, reembolsoGrupal, getPagosGrupales, getPagosGrupalesByCategory, getPagosGrupalesBySubcategory, getPagosGrupalesByCatandSub, applyGruProgrammedPagos, applyGruPendientesPagos, updPagoGruProgramado};

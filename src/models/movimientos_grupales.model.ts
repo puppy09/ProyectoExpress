@@ -93,5 +93,6 @@ movimientogrupal.init({
     timestamps:false
 });
 //movimiento.hasOne(diaMov,{foreignKey:'id_mov', as:'movimientoDetail'});
-movimientogrupal.belongsTo(tipoMovimiento, {foreignKey:'tipo_movimiento'});
+movimientogrupal.belongsTo(tipoMovimiento, {foreignKey:'tipo_movimiento', as: 'movimientoDetail'});
+movimientogrupal.belongsTo(user, {foreignKey: 'id_usuario', as:'userDetail'})
 export{ movimientogrupal };
