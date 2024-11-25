@@ -45,7 +45,7 @@ const addFondos = async(req:Request, res:Response)=>{
         if(!isMiembro){
             return res.status(401).json({message:'No eres miembro de este grupo o no es activo'});
         }
-        if(tipo_deposito===2){
+/*        if(tipo_deposito===2){
             const depoProgramado = movimientoProgramadoGrupal.create({
                 id_grupo: auxGrupo,
                 id_usuario: UserId,
@@ -55,7 +55,7 @@ const addFondos = async(req:Request, res:Response)=>{
                 dia:dia_depo,
                 estatus:1
             });
-        }
+        }*/
         cuentaFound.saldo -= monto;
         cuentaFound.save();
         
@@ -92,6 +92,59 @@ const addFondos = async(req:Request, res:Response)=>{
     }catch(error){
         console.log(error);
         return res.status(500).json({message:'ERROR AÑADIENDO FONDOS'});
+    }
+}
+
+const addFondosProgramados = async(req:Request, res:Response)=>{
+    try {
+        const UserId = (req as any).user.id;
+        const {no_cuenta, monto, tipo_deposito, dia_depo} = req.body;
+        const {grupo} = req.params;
+        const auxGrupo = parseInt(grupo);
+        const cuentaFound = await cuenta.findOne({
+            where:{
+                no_cuenta: no_cuenta,
+                id_usuario: UserId
+            }
+        });
+        if(!cuentaFound){
+            return res.status(404).json({message:'Cuenta no encontrada'});
+        }
+        const isActivo = await miembros.findOne({
+            where:{
+                id_grupo: grupo,
+                id_usuario:  UserId,
+                id_estatus: 1
+            }
+        });
+        if(!isActivo){
+            return res.status(500).json({message:'Este user no esta activo'});
+        }
+        if(cuentaFound.saldo<monto){
+            return res.status(500).json({message:'Fondos insuficientes'});
+        }
+        const isMiembro = miembros.findOne({
+            where:{
+                id_grupo: grupo,
+                id_usuario: UserId,
+                id_estatus: 1
+            }
+        });
+        if(!isMiembro){
+            return res.status(401).json({message:'No eres miembro de este grupo o no es activo'});
+        }
+        const depoProgramado = movimientoProgramadoGrupal.create({
+            id_grupo: auxGrupo,
+            id_usuario: UserId,
+            no_cuenta: no_cuenta,
+            descripcion: `Adicion de fondos del usuario ${UserId}`,
+            monto: monto,
+            dia:dia_depo,
+            estatus:1
+        });
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({message:'ERROR PROGRAMANDO FONDOS'});
     }
 }
 
@@ -192,5 +245,36 @@ const uptFondosProGru = async(req:Request, res:Response)=>{
     }
 }
 
-
-export{addFondos, applyFondosGrupales, uptFondosProGru};
+const getMovimientosGrupales = async(req:Request,res:Response)=>{
+    try {
+        
+            const UserId = (req as any).user.id;
+            const {grupo} = req.params;
+            const isActivo = await miembros.findOne({
+                where:{
+                    id_grupo: grupo,
+                    id_usuario:  UserId,
+                    id_estatus: 1
+                }
+            });
+            if(!isActivo){
+                return res.status(500).json({message:'Este user no esta activo'});
+            }
+            const auxPagos = await movimientogrupal.findAll({
+                where:{
+                    id_grupo: grupo
+                },
+                order:[
+                    ['fecha', 'DESC']
+                ]
+            });
+            if(auxPagos.length===0){
+                return res.status(404).json({message: 'Este grupo aun no ha hecho pagos'});
+            }
+            return res.status(200).json(auxPagos);
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({message:'ERROR OBTENIENDO MOVIMIENTOS GRUPALES'});
+    }
+}
+export{addFondos, applyFondosGrupales, uptFondosProGru , getMovimientosGrupales};

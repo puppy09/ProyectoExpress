@@ -8,6 +8,8 @@ import { pagospendientesgrupos } from "../models/pagospendientes_grupos.mode";
 import { categoriagrupal } from "../models/categorias_grupos.model";
 import { pagos } from "../models/pagos.model";
 import { miembros } from "../models/miembros_grupos.model";
+import { negocio } from "../models/negocio.model";
+import { estatuspagos } from "../models/estatus_pagos.model";
 
 const addPagoGrupal = async(req:Request, res:Response)=>{
     try{
@@ -32,7 +34,7 @@ const addPagoGrupal = async(req:Request, res:Response)=>{
         if(isNaN(monto||monto<0)){
             return res.status(500).json({message:'Cantidad invalida'});
         }
-        if(tipo_pago===2){
+        /*if(tipo_pago===2){
             const newProgrammedPago = await pagogrupalprogramado.create({
                 id_usuario: UserId,
                 id_grupo: auxGrupo,
@@ -50,7 +52,7 @@ const addPagoGrupal = async(req:Request, res:Response)=>{
                 message: 'Pago global programado con exito',
                 pago:newProgrammedPago
             });
-        }
+        }*/
         //Verificar que Categoria
         const fecha = new Date();
         const newPago = await pagogrupal.create({
@@ -87,6 +89,48 @@ const addPagoGrupal = async(req:Request, res:Response)=>{
     }
 }
 
+const addPagoProgramadoGrupal = async(req:Request, res:Response)=>{
+
+    const UserId = (req as any).user.id;
+    const {no_cuenta, descripcion, monto, categoria, subcategoria, tipo_pago, dia_pago, total_pagos} = req.body;
+    const {grupo}=req.params;
+    const auxGrupo = parseInt(grupo);
+    const grupoFound = await grupos.findByPk(grupo);
+    const isActivo = await miembros.findOne({
+        where:{
+            id_grupo: grupo,
+            id_usuario:  UserId,
+            id_estatus: 1
+        }
+    });
+    if(!isActivo){
+        return res.status(500).json({message:'Este user no esta activo'});
+    }
+    if(!grupoFound){
+        return res.status(404).json({message:'Grupo no encontrado'});
+    }
+    if(isNaN(monto||monto<0)){
+        return res.status(500).json({message:'Cantidad invalida'});
+    }
+
+    const newProgrammedPago = await pagogrupalprogramado.create({
+        id_usuario: UserId,
+        id_grupo: auxGrupo,
+        no_cuenta: no_cuenta,
+        descripcion: descripcion,
+        monto:monto,
+        categoria:categoria,
+        subcategoria:subcategoria,
+        dia_programado: dia_pago,
+        pagos_hechos: 0,
+        total_pagos: total_pagos,
+        estatus_pago: 1
+    });
+    return res.status(201).json({
+        message: 'Pago global programado con exito',
+        pago:newProgrammedPago
+    });
+}
 const updatePagoGrupal = async(req:Request, res:Response)=>{
     try{
         const UserId = (req as any).user.id;
@@ -247,19 +291,40 @@ const getPagosGrupales = async(req:Request, res:Response)=>{
                 id_estatus: 1
             }
         });
-        if(!isActivo){
+        /*if(!isActivo){
             return res.status(500).json({message:'Este user no esta activo'});
-        }
+        }*/
         const auxPagos = await pagogrupal.findAll({
             where:{
                 id_grupo: grupo
-            }
+            },
+            include: [
+                {
+                    model: categoriagrupal,
+                    attributes: ['categoria'], // Specify the attributes you want to retrieve from Category
+                },
+                {
+                    model: negocio,
+                    attributes: ['nombre']
+                },
+                {
+                    model: tipospagos,
+                    attributes:['tipo']
+                },
+                {
+                    model:estatuspagos,
+                    attributes:['estatus_pagos']
+                }
+            ],
+            order:[
+                ['fecha', 'DESC']
+            ]
         });
 
         if(auxPagos.length===0){
             return res.status(404).json({message: 'Este grupo aun no ha hecho pagos'});
         }
-        return res.status(200).json({auxPagos});
+        return res.status(200).json(auxPagos);
     }catch(error){
         console.log(error);
         return res.status(500).json({message:'ERROR OBTENIENDO PAGOS GRUPALES'});
@@ -654,4 +719,4 @@ const updPagoGruProgramado = async(req: Request, res:Response)=>{
         return res.status(500).json({message:'ERROR ACUTUALIZANDO PAGO PROGRAMADO'});
     }
 }
-export {addPagoGrupal, updatePagoGrupal, reembolsoGrupal, getPagosGrupales, getPagosGrupalesByCategory, getPagosGrupalesBySubcategory, getPagosGrupalesByCatandSub, applyGruProgrammedPagos, applyGruPendientesPagos, updPagoGruProgramado};
+export {addPagoProgramadoGrupal,addPagoGrupal, updatePagoGrupal, reembolsoGrupal, getPagosGrupales, getPagosGrupalesByCategory, getPagosGrupalesBySubcategory, getPagosGrupalesByCatandSub, applyGruProgrammedPagos, applyGruPendientesPagos, updPagoGruProgramado};
