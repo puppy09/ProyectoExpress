@@ -6,6 +6,9 @@ const changePsw = async(req: Request, res:Response)=>{
     try{
         const UserId = (req as any).user.id;
         const {contra, newcontra, confirContra} = req.body;
+        console.log("contra "+contra);
+        console.log("nueva contra "+ newcontra);
+        console.log("confirmacion contra "+confirContra);
         const userFound = await user.findByPk(UserId);
         if(!userFound){
             return res.status(404).json({message:'User no encontrado'});

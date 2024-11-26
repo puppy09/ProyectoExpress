@@ -6,7 +6,7 @@ const JWT_SECRET =process.env.JWT_SECRET || "secreto.01";
 const generateToken = (id: number)=>{
 
     //Firmar JWT Con el ID del usuario
-    return sign({ id }, JWT_SECRET, {expiresIn: "3h"});
+    return sign({ id }, JWT_SECRET, {expiresIn: "24h"});
 }
 
 const verifyToken = (token: string)=>{
