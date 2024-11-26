@@ -65,4 +65,5 @@ categoriagrupal.init({
     timestamps:false,
 });
 categoriagrupal.belongsTo(estatus, { foreignKey: 'estatus', as: 'estatusDetail'});
+categoriagrupal.belongsTo(user, {foreignKey: 'id_creador', as:'creadorDetail'});
 export { categoriagrupal };

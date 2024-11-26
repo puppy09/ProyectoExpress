@@ -6,5 +6,5 @@ const router = Router();
 
 router.post('/:grupo', checkJwt, addSubcategoria);
 router.get('/:grupo', checkJwt, getSubcategorias)
-router.get('/categoria/:id_categoria',checkJwt, getSubcategoriasByCat);
+router.get('/grupo/:grupo/categoria/:id_categoria',checkJwt, getSubcategoriasByCat);
 export{router};

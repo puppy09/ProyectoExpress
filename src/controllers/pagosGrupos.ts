@@ -15,7 +15,7 @@ import { user } from "../models/user.model";
 const addPagoGrupal = async(req:Request, res:Response)=>{
     try{
         const UserId = (req as any).user.id;
-        const {no_cuenta, descripcion, monto, categoria, subcategoria, tipo_pago, dia_pago, total_pagos} = req.body;
+        const {no_cuenta, descripcion, monto, categoria, subcategoria} = req.body;
         const {grupo}=req.params;
         const auxGrupo = parseInt(grupo);
         const grupoFound = await grupos.findByPk(grupo);
@@ -35,25 +35,6 @@ const addPagoGrupal = async(req:Request, res:Response)=>{
         if(isNaN(monto||monto<0)){
             return res.status(500).json({message:'Cantidad invalida'});
         }
-        /*if(tipo_pago===2){
-            const newProgrammedPago = await pagogrupalprogramado.create({
-                id_usuario: UserId,
-                id_grupo: auxGrupo,
-                no_cuenta: no_cuenta,
-                descripcion: descripcion,
-                monto:monto,
-                categoria:categoria,
-                subcategoria:subcategoria,
-                dia_programado: dia_pago,
-                pagos_hechos: 0,
-                total_pagos: total_pagos,
-                estatus_pago: 1
-            });
-            return res.status(201).json({
-                message: 'Pago global programado con exito',
-                pago:newProgrammedPago
-            });
-        }*/
         //Verificar que Categoria
         const fecha = new Date();
         const newPago = await pagogrupal.create({
@@ -93,7 +74,7 @@ const addPagoGrupal = async(req:Request, res:Response)=>{
 const addPagoProgramadoGrupal = async(req:Request, res:Response)=>{
 
     const UserId = (req as any).user.id;
-    const {no_cuenta, descripcion, monto, categoria, subcategoria, tipo_pago, dia_pago, total_pagos} = req.body;
+    const {no_cuenta, descripcion, monto, categoria, subcategoria, dia_pago, total_pagos} = req.body;
     const {grupo}=req.params;
     const auxGrupo = parseInt(grupo);
     const grupoFound = await grupos.findByPk(grupo);

@@ -61,6 +61,11 @@ const getCategorias = async(req:Request, res:Response)=>{
                     model: estatus, // Include the category details
                     as: 'estatusDetail',
                     attributes: ['estatus'] // Specify the attributes you want to retrieve from Category
+                },
+                {
+                    model: user,
+                    as: 'creadorDetail',
+                    attributes: ['nombre']
                 }
             ]
         });
@@ -68,7 +73,7 @@ const getCategorias = async(req:Request, res:Response)=>{
             console.log(categoriesFound);
             return res.status(404).json({message:'Categorias no encontradas'});
         }
-        return res.status(200).json({categoriesFound});
+        return res.status(200).json(categoriesFound);
     }catch(error){
         console.log(error);
         return res.status(500).json({message:'ERROR OBTENIENDO CATEGORIAS GRUPALES'});
@@ -131,7 +136,7 @@ const deshabilitarCat = async(req:Request, res:Response)=>{
 //GET CATEGORIAS ACTIVAS
 const getGlobalActCat = async(req:Request, res:Response)=>{
     try{
-        const {grupo} = req.body;
+        const {grupo} = req.params;
         const UserId = (req as any).user.id;
 
         const userFound = await miembros.findOne({where:{
@@ -145,7 +150,18 @@ const getGlobalActCat = async(req:Request, res:Response)=>{
             where:{
                 id_grupo: grupo,
                 estatus:1
-            }
+            },include: [
+                {
+                    model: estatus, // Include the category details
+                    as: 'estatusDetail',
+                    attributes: ['estatus'] // Specify the attributes you want to retrieve from Category
+                },
+                {
+                    model: user,
+                    as: 'creadorDetail',
+                    attributes: ['nombre']
+                }
+            ]
         });
         if(categoriesFound.length===0){
             return res.status(404).json({message:'Categorias no encontradas'});

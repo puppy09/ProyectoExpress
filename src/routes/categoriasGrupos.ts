@@ -4,7 +4,7 @@ import { addCategoria, deshabilitarCat, getBudgetSpentGrupal, getCategorias, get
 import { getBudgetSpent } from "../controllers/category";
 const router = Router();
 
-router.get('/activas',checkJwt, getGlobalActCat);
+router.get('/activas/:grupo',checkJwt, getGlobalActCat);
 router.put('/update/:categoria',checkJwt,updateGloCat);
 router.put('/gastado/:grupo',checkJwt, getBudgetSpentGrupal);
 router.post('/:grupo',checkJwt, addCategoria);

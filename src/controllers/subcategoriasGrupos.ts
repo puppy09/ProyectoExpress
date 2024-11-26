@@ -64,16 +64,16 @@ const getSubcategoriasByCat = async(req:Request, res:Response)=>{
     try{
         //Obtenemos ID de usuario
     const id_user = (req as any).user.id;
-    const {id_categoria} = req.params;
-    const {grupo} = req.body;
+    const {id_categoria, grupo} = req.params;
+
+    console.log("CATEGORIAAAAAAAAAA " +id_categoria);
+    console.log("grupooooooooooooooooooooooooooo "+grupo);
+    //const {grupo} = req.body;
 
     const auxSub = await subcategoriagrupal.findAll({
         where:{
             id_categoria: id_categoria,
             id_grupo: grupo
-        },
-        attributes:{
-            exclude:['id_negocio','id_user']
         },
         include: [
             {
