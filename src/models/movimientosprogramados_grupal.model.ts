@@ -86,5 +86,6 @@ movimientoProgramadoGrupal.init({
     timestamps:false
 });
 movimientoProgramadoGrupal.belongsTo(estatus, { foreignKey: 'estatus', as: 'estatusDetail'});
+movimientoProgramadoGrupal.belongsTo(user,{foreignKey: 'id_usuario', as:'usuarioDetail'});
 //movimientoProgramado.hasOne(diaMov,{foreignKey:'id_mov', as:'movimientoDetail'});
 export{ movimientoProgramadoGrupal };

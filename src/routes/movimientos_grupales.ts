@@ -1,11 +1,13 @@
 import { Router } from "express";
 import { checkJwt } from "../middleware/session";
 
-import { addFondos, getMovimientosGrupales, uptFondosProGru } from "../controllers/movimientosGrupos";
+import { addFondos, addFondosProgramados, getMovimientosGrupales, getMovimientosProgramadosGrupales, uptFondosProGru } from "../controllers/movimientosGrupos";
 const router = Router();
 
 router.post('/add/:grupo',checkJwt, addFondos);
+router.post('/add/programados/:grupo',checkJwt, addFondosProgramados);
 router.get('/:grupo',checkJwt, getMovimientosGrupales);
+router.get('/programados/:grupo',checkJwt, getMovimientosProgramadosGrupales);
 router.put('/update/:grupo',checkJwt,uptFondosProGru);
 
 export {router};

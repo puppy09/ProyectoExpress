@@ -8,10 +8,11 @@ import { movimientoProgramadoGrupal } from "../models/movimientosprogramados_gru
 import { user } from "../models/user.model";
 import { isMiembro } from "../utils/activeMember.handle";
 import { tipoMovimiento } from "../models/tipomovimiento.model";
+import { estatus } from "../models/estatus.model";
 const addFondos = async(req:Request, res:Response)=>{
     try{
         const UserId = (req as any).user.id;
-        const {no_cuenta, monto, tipo_deposito, dia_depo} = req.body;
+        const {no_cuenta, descripcion, monto } = req.body;
         const {grupo} = req.params;
         const auxGrupo = parseInt(grupo);
         const cuentaFound = await cuenta.findOne({
@@ -75,7 +76,7 @@ const addFondos = async(req:Request, res:Response)=>{
             tipo_movimiento: 1,
             id_pago: 0,
             no_cuenta: no_cuenta,
-            descripcion: `Adicion de fondos del usuario ${UserId}`,
+            descripcion: descripcion,
             monto: monto,
             fecha: date
         });
@@ -84,12 +85,12 @@ const addFondos = async(req:Request, res:Response)=>{
             id_usuario:UserId,
             id_pago:0,
             no_cuenta:no_cuenta,
-            descripcion:`Adicion de fondos al grupo ${grupo}`,
+            descripcion:`Adicion de fondos al grupo ${grupoFound.nombre}`,
             tipo_movimiento: 2,
             monto: monto,
             fecha: date
         });
-        return res.status(200).json({message:'Fondos añadidos'});
+        return res.status(200).json(newMovimiento);
     }catch(error){
         console.log(error);
         return res.status(500).json({message:'ERROR AÑADIENDO FONDOS'});
@@ -99,7 +100,7 @@ const addFondos = async(req:Request, res:Response)=>{
 const addFondosProgramados = async(req:Request, res:Response)=>{
     try {
         const UserId = (req as any).user.id;
-        const {no_cuenta, monto, tipo_deposito, dia_depo} = req.body;
+        const {no_cuenta, monto, descripcion, dia_depo} = req.body;
         const {grupo} = req.params;
         const auxGrupo = parseInt(grupo);
         const cuentaFound = await cuenta.findOne({
@@ -121,9 +122,6 @@ const addFondosProgramados = async(req:Request, res:Response)=>{
         if(!isActivo){
             return res.status(500).json({message:'Este user no esta activo'});
         }
-        if(cuentaFound.saldo<monto){
-            return res.status(500).json({message:'Fondos insuficientes'});
-        }
         const isMiembro = miembros.findOne({
             where:{
                 id_grupo: grupo,
@@ -138,11 +136,12 @@ const addFondosProgramados = async(req:Request, res:Response)=>{
             id_grupo: auxGrupo,
             id_usuario: UserId,
             no_cuenta: no_cuenta,
-            descripcion: `Adicion de fondos del usuario ${UserId}`,
+            descripcion: descripcion,
             monto: monto,
             dia:dia_depo,
             estatus:1
         });
+        return res.status(200).json(depoProgramado);
     } catch (error) {
         console.log(error);
         return res.status(500).json({message:'ERROR PROGRAMANDO FONDOS'});
@@ -290,4 +289,46 @@ const getMovimientosGrupales = async(req:Request,res:Response)=>{
         return res.status(500).json({message:'ERROR OBTENIENDO MOVIMIENTOS GRUPALES'});
     }
 }
-export{addFondos, applyFondosGrupales, uptFondosProGru , getMovimientosGrupales};
+
+const getMovimientosProgramadosGrupales = async(req: Request, res:Response)=>{
+    try {
+        
+        const UserId = (req as any).user.id;
+        const {grupo} = req.params;
+        const isActivo = await miembros.findOne({
+            where:{
+                id_grupo: grupo,
+                id_usuario:  UserId,
+                id_estatus: 1
+            }
+        });
+        if(!isActivo){
+            return res.status(500).json({message:'Este user no esta activo'});
+        }
+        const auxMovimientos = await movimientoProgramadoGrupal.findAll({
+            where:{
+                id_grupo: grupo
+            },
+            include:[
+                {
+                    model: estatus,
+                    as: 'estatusDetail',
+                    attributes:['estatus']
+                },
+                {
+                    model: user,
+                    as: 'usuarioDetail',
+                    attributes:['nombre']
+                }
+            ]
+        });
+        if(auxMovimientos.length===0){
+            return res.status(404).json({message: 'No hay fondos programados'});
+        }
+        return res.status(200).json(auxMovimientos);
+} catch (error) {
+    console.log(error);
+    return res.status(500).json({message:'ERROR OBTENIENDO MOVIMIENTOS GRUPALES'});
+}
+}
+export{addFondosProgramados, addFondos, applyFondosGrupales, uptFondosProGru , getMovimientosGrupales, getMovimientosProgramadosGrupales};
