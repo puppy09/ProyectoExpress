@@ -317,6 +317,7 @@ const getTotalGastado = async(req:Request, res:Response)=>{
         
         const startMes = new Date(new Date().getFullYear(), new Date().getMonth(),1);
         const startMesSig = new Date(new Date().getFullYear(), new Date().getMonth()+1,1);
+        let totalMonto = '';
         const auxMonto = await pagos.sum('monto',{
             where:{
                 id_usuario: userId,
@@ -325,7 +326,12 @@ const getTotalGastado = async(req:Request, res:Response)=>{
                     [Op.lt]: startMesSig
                 }
             }});
-            const totalMonto = auxMonto.toFixed(2);
+            if(auxMonto){
+                totalMonto = auxMonto.toFixed(2);
+            }
+            else{
+                totalMonto = '0';
+            }
         return res.status(200).json({totalMonto});
     } catch (error) {
         console.log("ERROR OBTENIENDO SUMA MENSUAL", error);

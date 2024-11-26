@@ -5,6 +5,7 @@ import {user} from "../models/user.model";
 import nodemailer from "nodemailer";
 import dotenv from 'dotenv';
 import { generateRandomPassword, updatePassword } from "../utils/generatePsw.handle";
+import { text } from "stream/consumers";
 
 dotenv.config();
 const JWT_SECRET =process.env.JWT_SECRET || "secreto.01";
@@ -48,7 +49,7 @@ const loginCtrl = async (req:Request, res:Response)=>{
 
 //Registrar Usuario
 const registerCtrl = async(req:Request, res:Response)=>{
-    const {nombre, apellidos, email, contra} = req.body;
+    const {nombre, apellidos, email} = req.body;
 
     //Verificamos si ya esta registrado
     const checkIs = await user.findOne({
@@ -63,12 +64,30 @@ const registerCtrl = async(req:Request, res:Response)=>{
         return res.status(400).json({message:'Este Correo ya fue registrado'});
     }
 
-    //Encriptamos contraseña
-    const passHash = await encrypt(contra);
+    //Generamos contraseña
+    const pass = generateRandomPassword();
+    //encriptamos contraseña
+    const passHash = await encrypt(pass);
+    
+    const transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth:{
+            user: process.env.CORREO,
+            pass: process.env.CONTRA_CORREO
+        },
+    });
 
-    //Registramos en la BD
+    const mailOptions = {
+        from: process.env.CORREO,
+        to: email,
+        subject: 'Registro de Sweeney',
+        text:`¡Gracias por registrarte en Sweeney! Usa esta contraseña para iniciar sesión ${pass}.
+                Podrás cambiar tu contraseña una vez ingreses a la aplicación`
+    };
+
+    await transporter.sendMail(mailOptions);
     const registerNewUser = await user.create({ nombre, apellidos, email, contra:passHash, ingresos_mensules:0 });
-    return res.status(200).json(registerNewUser);
+    return res.status(200).json({message: 'Registro completado'});
 }
 const recoverPsw = async(req: Request, res:Response)=>{
     try {
@@ -78,29 +97,28 @@ const recoverPsw = async(req: Request, res:Response)=>{
                 email: email
             }
         });
-        if(!correoFound){
-            console.log("no existe pa");
-            return res.status(404).json({message:'NOT FOUND'});
-        }
-        const newPassword = generateRandomPassword();
-        updatePassword(email, newPassword);
+        if(correoFound){
+            const newPassword = generateRandomPassword();
+            updatePassword(email, newPassword);
         
-        const transporter = nodemailer.createTransport({
-            service: 'gmail',
-            auth:{
-                user: process.env.CORREO,
-                pass: process.env.CONTRA_CORREO
-            },
-        });
+            const transporter = nodemailer.createTransport({
+                service: 'gmail',
+                auth:{
+                    user: process.env.CORREO,
+                    pass: process.env.CONTRA_CORREO
+                },
+            });
 
-        const mailOptions = {
-            from: process.env.CORREO,
-            to: email,
-            subject: 'Recuperar Contraseña',
-            text: `Tu Contraseña temporal es : ${newPassword}. Ingresa en la aplicacion.`,
-        };
-        await transporter.sendMail(mailOptions);
+            const mailOptions = {
+                from: process.env.CORREO,
+                to: email,
+                subject: 'Recuperar Contraseña',
+                text: `Tu Contraseña temporal es : ${newPassword}. Ingresa en la aplicacion.`,
+            };
+            await transporter.sendMail(mailOptions);
+        }
         return res.status(200).json({message:'Email enviado'});
+    
     } catch (error) {
         console.log(error);
         return res.status(500).json({message:'ERROR ENVIANDO CORREO'});
