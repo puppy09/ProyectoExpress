@@ -96,17 +96,50 @@ const getCuentasActivas = async(req: Request, res: Response)=>{
              where:{
                  id_usuario: userId,
                  estatus: 1
-             }
+             },
+             include: [
+                {
+                    model: estatus, // Include the category details
+                    as: 'estatusDetail',
+                    attributes: ['estatus'] // Specify the attributes you want to retrieve from Category
+                }
+            ]
          });
-         if(cuentas.length === 0 || !cuentas){
+         /*if(cuentas.length === 0 || !cuentas){
              return res.status(404).json({message:"Este usuario no tiene ninguna cuenta agregada"});
-         }
+         }*/
          return res.send(cuentas);
     }catch(error){
          console.error('Error obteniendo cuentas activas: ', error);
          handleHttp(res, 'ERROR_GETTING_ACTIVE_CUENTAS'); // Handle error properly
     }
  };
+
+ const getCuentasInactivas = async(req:Request, res:Response)=>{
+    try{
+        const userId = (req as any).user.id;
+        const cuentas = await cuenta.findAll({
+            where:{
+                id_usuario: userId,
+                estatus: 2
+            },
+            include: [
+                {
+                    model: estatus, // Include the category details
+                    as: 'estatusDetail',
+                    attributes: ['estatus'] // Specify the attributes you want to retrieve from Category
+                }
+            ]
+        });
+        /*if(cuentas.length === 0 || !cuentas){
+            return res.status(404).json({message:"Este usuario no tiene cuentas inactivas"});
+        }*/
+        return res.send(cuentas);
+   }catch(error){
+        console.error('Error obteniendo cuentas activas: ', error);
+        handleHttp(res, 'ERROR OBTENIENDO CUENTAS INACTIVAS'); // Handle error properly
+   }
+ }
 /*const deleteCuentas= async(req: Request, res:Response)=>{
     try{
 
@@ -430,4 +463,4 @@ const gettotalCuentas = async(req:Request, res:Response)=>{
         return res.status(500).json({message:'ERROR OBTENIENDO SUMA DE CUENTAS'});
     }
 }
-export { postCuenta, getCuentas, updateCuentas, habilitarCuenta, deshabilitarCuenta, applyProgrammedDeposits, getCuentasActivas, gettotalCuentas };
+export { postCuenta, getCuentas, updateCuentas, habilitarCuenta, deshabilitarCuenta, applyProgrammedDeposits, getCuentasActivas,getCuentasInactivas, gettotalCuentas };
