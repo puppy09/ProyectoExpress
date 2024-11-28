@@ -48,6 +48,8 @@ const postNegocio = async (req: Request, res: Response) => {
     }
 };
 
+
+
 const getRubros = async (req: Request, res:Response)=>{
     try {
         const rubros = await negocioRubro.findAll();

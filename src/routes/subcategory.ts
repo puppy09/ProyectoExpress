@@ -1,11 +1,11 @@
 import {Router} from 'express';
 import { checkJwt } from "../middleware/session";
-import { asignarSubcategoria, deleteSubcategory, getSubByCat, getSingleSubcategorias, getSubcategorias, createAsosiaciones } from '../controllers/subcategory';
+import { asignarSubcategoria, deleteSubcategory, getSubByCat, getSingleSubcategorias, getSubcategorias, postAndAssign } from '../controllers/subcategory';
 const router = Router();
 
 
 router.post('/',checkJwt, asignarSubcategoria);
-router.post('/crear/asociaciones', checkJwt, createAsosiaciones);
+router.post('/create/assign',checkJwt, postAndAssign);
 router.get('/:catId',checkJwt, getSubByCat);
 router.get('/', checkJwt, getSubcategorias);
 

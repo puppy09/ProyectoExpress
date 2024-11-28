@@ -75,6 +75,33 @@ const asignarSubcategoria = async(req:Request, res:Response)=>{
     }
 }
 
+const postAndAssign = async(req:Request, res:Response)=>{
+    try {
+
+         //Obtenemos id del usuario
+         const userId = (req as any).user.id;
+        
+         //Obtenemos parametros del body
+         const { nombre, tipo_negocio, categoria } = req.body;
+        
+         const newNegocio = await negocio.create({
+            nombre: nombre,
+            tipo_negocio: tipo_negocio,
+            id_creador: userId
+        });
+
+        const newSubcategory = await subcategory.create({
+            id_categoria: categoria,
+            id_negocio: newNegocio.id_negocio,
+            id_user: userId
+        });
+        return res.status(201).json(newSubcategory);        
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({message:'Error agregando subcategoria'})
+    }
+}
+
 const getSubcategorias = async(req:Request, res:Response)=>{
     try{
          
@@ -230,7 +257,7 @@ const getSubByCat = async(req:Request, res:Response)=>{
     }
 }
 
-const createAsosiaciones = async(req:Request, res:Response)=>{
+/*const createAsosiaciones = async(req:Request, res:Response)=>{
     try {
         const userID = (req as any).user.id;
         const {categoria, negocios} = req.body;
@@ -277,6 +304,6 @@ const createAsosiaciones = async(req:Request, res:Response)=>{
     } catch (error) {
         return res.status(500).json({ message: 'Error procesando asociaciones' });
     }
-}
+}*/
 
-export{createAsosiaciones, asignarSubcategoria, getSubcategorias, getSingleSubcategorias, deleteSubcategory, getSubByCat};
+export{ postAndAssign, asignarSubcategoria, getSubcategorias, getSingleSubcategorias, deleteSubcategory, getSubByCat};
