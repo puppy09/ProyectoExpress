@@ -127,8 +127,9 @@ const recoverPsw = async(req: Request, res:Response)=>{
 
 const getSelfData = async(req:Request, res:Response)=>{
     try {
-        const userID = (req as any).user.id;
 
+        const userID = (req as any).user.id;
+        console.log("SEEEEEEEEEEEEEEEEEELLLLLLLLLLLLLLLLFFFFFFFFFFFFF DDDDDDDDDDDDDDDDDAAAAAAAAAAAAAAAAAATTTTTTTTAAAAAAAAAAA");
         const userFound= await user.findByPk(userID);
         return res.status(200).json(userFound);
     } catch (error) {

@@ -4,7 +4,7 @@ import { grupos } from "../models/grupos.model";
 import { movimientogrupal } from "../models/movimientos_grupales.model";
 import { tipospagos } from "../models/tipo_pagos.model";
 import { pagogrupalprogramado } from "../models/pagos_programados_grupales.model";
-import { pagospendientesgrupos } from "../models/pagospendientes_grupos.mode";
+//import { pagospendientesgrupos } from "../models/pagospendientes_grupos.mode";
 import { categoriagrupal } from "../models/categorias_grupos.model";
 import { pagos } from "../models/pagos.model";
 import { miembros } from "../models/miembros_grupos.model";
@@ -490,15 +490,6 @@ const applyGruProgrammedPagos = async()=>{
 
             const grupoFound = await grupos.findByPk(id_grupo);
             if(grupoFound){
-                if(grupoFound.fondos<monto){
-                    console.log(`Fondos Insuficientes en grupo ${id_grupo}, sera agendado como pago pendiente`);
-                    const pagoPendiente = await pagospendientesgrupos.create({
-                        //id_pagoprogramado: pago.id_pagoprogramado,
-                        id_pago_programado: pago.id_pago,
-                        id_grupo: pago.id_grupo
-                    });
-                    continue;
-                }
                 grupoFound.fondos -= monto;
                 await grupoFound.save();
             }
@@ -549,7 +540,7 @@ const applyGruProgrammedPagos = async()=>{
     }
 };
 
-const applyGruPendientesPagos = async()=>{
+/*const applyGruPendientesPagos = async()=>{
     const hoy = new Date();
     const dia= hoy.getDate();
     try{
@@ -649,7 +640,7 @@ const applyGruPendientesPagos = async()=>{
     }catch(error){
         console.log("Error aplicando pago pendiente ", error);
     }
-}
+}*/
 
 const updPagoGruProgramado = async(req: Request, res:Response)=>{
     try{
@@ -761,4 +752,4 @@ const updPagoGruProgramado = async(req: Request, res:Response)=>{
         return res.status(500).json({message:'ERROR ACUTUALIZANDO PAGO PROGRAMADO'});
     }
 }
-export {getPagosProgramados,addPagoProgramadoGrupal,addPagoGrupal, updatePagoGrupal, reembolsoGrupal, getPagosGrupales, getPagosGrupalesByCategory, getPagosGrupalesBySubcategory, getPagosGrupalesByCatandSub, applyGruProgrammedPagos, applyGruPendientesPagos, updPagoGruProgramado};
+export {getPagosProgramados,addPagoProgramadoGrupal,addPagoGrupal, updatePagoGrupal, reembolsoGrupal, getPagosGrupales, getPagosGrupalesByCategory, getPagosGrupalesBySubcategory, getPagosGrupalesByCatandSub, applyGruProgrammedPagos, updPagoGruProgramado};

@@ -331,4 +331,40 @@ const getMovimientosProgramadosGrupales = async(req: Request, res:Response)=>{
     return res.status(500).json({message:'ERROR OBTENIENDO MOVIMIENTOS GRUPALES'});
 }
 }
-export{addFondosProgramados, addFondos, applyFondosGrupales, uptFondosProGru , getMovimientosGrupales, getMovimientosProgramadosGrupales};
+
+const activarMovProgramado = async(req:Request, res:Response)=>{
+    try {
+        const {movPro} = req.params;
+        const userID = (req as any).user.id;
+        const movimientoFound = await movimientoProgramadoGrupal.findByPk(movPro);
+        if(!movimientoFound){
+            return res.status(500).json({message:'ERROR ENCONTRANDO MOVIMIENTO PROGRAMADO'});
+        }
+        movimientoFound.estatus=1;
+        movimientoFound.save();
+        return res.status(200).json(movimientoFound);
+
+    } catch (error) {
+        console.log("Error activando movimiento");
+        return res.status(500).json({message:'Error activando movimiento'});
+    }
+}
+
+const desactivarMovProgramado = async(req:Request, res:Response)=>{
+    try {
+        const {movPro} = req.params;
+        const userID = (req as any).user.id;
+        const movimientoFound = await movimientoProgramadoGrupal.findByPk(movPro);
+        if(!movimientoFound){
+            return res.status(500).json({message:'ERROR ENCONTRANDO MOVIMIENTO PROGRAMADO'});
+        }
+        movimientoFound.estatus=2;
+        movimientoFound.save();
+        return res.status(200).json(movimientoFound);
+
+    } catch (error) {
+        console.log("Error desactivando movimiento");
+        return res.status(500).json({message:'Error desactivando movimiento'});
+    }
+}
+export{desactivarMovProgramado,activarMovProgramado,addFondosProgramados, addFondos, applyFondosGrupales, uptFondosProGru , getMovimientosGrupales, getMovimientosProgramadosGrupales};

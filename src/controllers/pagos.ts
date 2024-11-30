@@ -11,7 +11,7 @@ import { negocio } from "../models/negocio.model";
 import { findingUser } from "../utils/userFound.handle";
 import { pagosprogramados } from "../models/pagosprogramados.model";
 import { movimiento } from "../models/movimientos.model";
-import { pagospendientes } from "../models/pagospendientes.model";
+//import { pagospendientes } from "../models/pagospendientes.model";
 import {Op} from 'sequelize';
 import { corteMensual } from "../models/corteMensual.model";
 const postPago = async(req: Request, res:Response)=>{  
@@ -631,13 +631,6 @@ const applyProgrammedPagos = async()=>{
                 }
             });
             if(cuentaFound){
-                if(cuentaFound.saldo<monto){
-                    console.log(`Fondos Insuficientes en cuenta ${no_cuenta} para el usuario${id_usuario}, sera agendado como pago pendiente`);
-                    const pagoPendiente = await pagospendientes.create({
-                        id_pagoprogramado: pago.id_pagoprogramado
-                    });
-                    continue;
-                }
                 cuentaFound.saldo -= monto;
                 await cuentaFound.save();
             }
@@ -686,7 +679,7 @@ const applyProgrammedPagos = async()=>{
     }
 };
 
-const applyPagosPendientes = async()=>{
+/*const applyPagosPendientes = async()=>{
     const hoy = new Date();
     const dia= hoy.getDate();
     try{
@@ -763,7 +756,7 @@ const applyPagosPendientes = async()=>{
     }catch(error){
         console.log("Error aplicando pago pendiente ", error);
     }
-}
+}*/
 const reemboslarPago = async(req:Request, res:Response)=>{
     try{
         //Obtenemos Id del Usuario
@@ -883,4 +876,4 @@ const updGastoMensual = async(userID: number, monto: number, fechaPago: Date)=>{
     }
     
 }
-export{updGastoMensual, getTotalGastado,postPago, postPagoProgramado, updatePago, getPagos, getSinglePago, getPagosCategory, getPagosSubcategory, getPagosCatSub, applyProgrammedPagos, reemboslarPago, getPagosProgramados, updatePagoProgramado, applyPagosPendientes, getPagosByCuenta}
+export{updGastoMensual, getTotalGastado,postPago, postPagoProgramado, updatePago, getPagos, getSinglePago, getPagosCategory, getPagosSubcategory, getPagosCatSub, applyProgrammedPagos, reemboslarPago, getPagosProgramados, updatePagoProgramado, getPagosByCuenta}
