@@ -11,9 +11,10 @@ import { negocio } from "../models/negocio.model";
 import { findingUser } from "../utils/userFound.handle";
 import { pagosprogramados } from "../models/pagosprogramados.model";
 import { movimiento } from "../models/movimientos.model";
-//import { pagospendientes } from "../models/pagospendientes.model";
 import {Op} from 'sequelize';
 import { corteMensual } from "../models/corteMensual.model";
+
+//Post Pago
 const postPago = async(req: Request, res:Response)=>{  
     try{
         //Obtenemos id del usuario
@@ -73,7 +74,6 @@ const postPago = async(req: Request, res:Response)=>{
                 tipo_movimiento:2,
                 fecha: currentDate
             });
-            await updGastoMensual(userId, monto, currentDate);
             return res.status(201).json(newPago);
         }catch(error){
             console.log(error);
@@ -81,6 +81,7 @@ const postPago = async(req: Request, res:Response)=>{
     }
 }
 
+//Post pago Programado
 const postPagoProgramado = async(req:Request, res:Response)=>{
     try {
         console.log("programando pago");
@@ -112,6 +113,8 @@ const postPagoProgramado = async(req:Request, res:Response)=>{
         return res.status(500).json({message:"ERROR PROGRAMANDO PAGO"});
     }
 }
+
+//Update Pago
 const updatePago = async(req:Request, res:Response)=>{
     try{
         //Obtenemos Id del Usuario
@@ -215,6 +218,8 @@ const updatePago = async(req:Request, res:Response)=>{
         return res.status(500).json(error);
     }
 }
+
+//Update a pago programado
 const updatePagoProgramado = async(req:Request, res:Response)=>{
     try{
         //Obtenemos Id del Usuario
@@ -308,6 +313,7 @@ const updatePagoProgramado = async(req:Request, res:Response)=>{
     } 
 }
 
+//Get total gastado en el mes
 const getTotalGastado = async(req:Request, res:Response)=>{
     try {
 
@@ -376,6 +382,8 @@ const getPagos = async(req:Request, res:Response)=>{
         return res.status(500).json({message: 'Error obteniendo pagos ', error});
     }
 }
+
+//Get de Pagos Programados
 const getPagosProgramados = async(req:Request, res:Response)=>{
     try{
         const userId = (req as any).user.id;
@@ -417,6 +425,8 @@ const getPagosProgramados = async(req:Request, res:Response)=>{
         return res.status(500).json({message:"Error obteniendo pagos programados"});
     }
 }
+
+//Get un solo pago
 const getSinglePago = async(req:Request, res:Response)=>{
     try{
         const userId = (req as any).user.id;
@@ -429,7 +439,7 @@ const getSinglePago = async(req:Request, res:Response)=>{
             include: [
                 {
                     model: category,
-                    attributes: ['nombre'], // Specify the attributes you want to retrieve from Category
+                    attributes: ['nombre'],
                 },
                 {
                     model: negocio,
@@ -606,23 +616,44 @@ const getPagosCatSub = async(req:Request, res:Response)=>{
         return res.status(500).json({message:'Error obteniendo pagos ', error});
     }
 }
+
+//Aplicar Pagos programados
 const applyProgrammedPagos = async()=>{
     const hoy = new Date();
     const dia= hoy.getDate();
+    const anioActual = hoy.getFullYear();
+    const mesActual = hoy.getMonth();
+
+    const getLastDayOfMonth = (year: number, month: number)=>{
+        return new Date(year, month +1, 0).getDate();
+    }
+
     try{
+
+        const lastDayOfCurrentMonth = getLastDayOfMonth(anioActual, mesActual);
+
         const pagosToApply = await pagosprogramados.findAll({
             where:{
-                dia_programado: dia,
+                [Op.or]:[
+                    {dia_programado: dia},
+                    {dia_programado: {[Op.gt]: lastDayOfCurrentMonth}},
+                ],
+                //dia_programado: dia,
                 estatus_pago:1
             }
         });
         if(pagosToApply.length===0){
             console.log("No hay pagos para aplicar hoy");
         }
-        console.log(pagosToApply);
+        //console.log(pagosToApply);
         for(const pago of pagosToApply){
-            const {id_usuario, no_cuenta, descripcion, categoria, subcategoria, monto, pagos_hechos, total_pagos} = pago;
+            let {id_usuario, no_cuenta, descripcion, categoria, subcategoria, monto, pagos_hechos, total_pagos, dia_programado} = pago;
 
+            if(dia_programado > lastDayOfCurrentMonth){
+                dia_programado=lastDayOfCurrentMonth;
+            }
+
+            if(dia_programado!== dia) continue;
             const cuentaFound = await cuenta.findOne({
                 where:{
                     no_cuenta: no_cuenta
@@ -635,11 +666,6 @@ const applyProgrammedPagos = async()=>{
             else{
                 console.log(`Cuenta ${no_cuenta}, no encontrada`);
             }
-            const categoryFound = await category.findByPk(categoria);
-            if(!categoryFound){
-                console.log("No existe esta categoria");
-                return;
-            }
             const currentDate: Date = new Date();
             const fecha = currentDate.getDate();
             const newPago = await pagos.create({
@@ -651,7 +677,6 @@ const applyProgrammedPagos = async()=>{
                 subcategoria:subcategoria,
                 tipo_pago:2,
                 fecha: currentDate,
-                //dia_pago: fecha,
                 pagos_hechos: pagos_hechos+1,
                 total_pagos:total_pagos,
                 estatus_pago: pagos_hechos + 1 >=total_pagos ? 2 : 1
@@ -677,84 +702,7 @@ const applyProgrammedPagos = async()=>{
     }
 };
 
-/*const applyPagosPendientes = async()=>{
-    const hoy = new Date();
-    const dia= hoy.getDate();
-    try{
-        const pagosPendientesApply = await pagospendientes.findAll();
-        if(pagosPendientesApply.length===0){
-            console.log("No hay pagos pendientes para aplicar");
-            return;
-        }
-        for(const pago of pagosPendientesApply){
-            const {id_pagoprogramado} = pago;
-
-            const pagoDetail = await pagosprogramados.findByPk(id_pagoprogramado);
-            if(!pagoDetail){
-                console.log("Cuenta no encontrada");
-                continue;
-            }
-            const cuentaFound = await cuenta.findOne({
-                where:{
-                    no_cuenta: pagoDetail.no_cuenta
-                }
-            });
-            if(!cuentaFound){
-                console.log("Cuenta no encontrada");
-                continue;
-            }
-            if(cuentaFound.saldo<pagoDetail.monto){
-                console.log('Saldos insuficientes');
-                continue;
-            }
-            const categoryFound = await category.findByPk(pagoDetail.categoria);
-            if(!categoryFound){
-                console.log("categoria no encontrada");
-                continue;
-            }
-            cuentaFound.saldo -= pagoDetail.monto;
-
-            const newPago = await pagos.create({
-                id_usuario:pagoDetail.id_usuario,
-                no_cuenta:pagoDetail.no_cuenta,
-                descripcion:pagoDetail.descripcion,
-                monto:pagoDetail.monto,
-                categoria:pagoDetail.categoria,
-                subcategoria:pagoDetail.subcategoria,
-                tipo_pago:2,
-                fecha: hoy,
-                //dia_pago: fecha,
-                pagos_hechos: pagoDetail.pagos_hechos+1,
-                total_pagos:pagoDetail.total_pagos,
-                estatus_pago: pagoDetail.pagos_hechos + 1 >=pagoDetail.total_pagos ? 2 : 1
-            });
-            pagoDetail.pagos_hechos+=1;
-            const newMovimiento = movimiento.create({
-                id_usuario:pagoDetail.id_usuario,
-                id_pago:newPago.id_pago,
-                no_cuenta:pagoDetail.no_cuenta,
-                descripcion:pagoDetail.descripcion,
-                monto:pagoDetail.monto,
-                tipo_movimiento:2,
-                fecha: hoy
-            });
-            if(pagoDetail.pagos_hechos >= pagoDetail.total_pagos){
-                pagoDetail.estatus_pago=2
-            }
-            await pagoDetail.save();
-            //await pago.save();
-            console.log(`Pago atrasado con monto ${pagoDetail.monto} aplicado a cuenta ${pagoDetail.no_cuenta} para el usuario ${pagoDetail.id_usuario}`);
-            await pagospendientes.destroy({
-                where:{
-                    id_pagoprogramado: pago.id_pagopendiente
-                }
-            });
-            
-        }
-    }catch(error){
-        console.log("Error aplicando pago pendiente ", error);
-    }
-}*/
+//Reembolsar Pago
 const reemboslarPago = async(req:Request, res:Response)=>{
     try{
         //Obtenemos Id del Usuario
@@ -811,6 +759,7 @@ const reemboslarPago = async(req:Request, res:Response)=>{
     }
 };
 
+//Pagos Por  Cuenta
 const getPagosByCuenta = async(req: Request, res:Response)=>{
     try {
         const userID = (req as any).user.id;
@@ -846,32 +795,4 @@ const getPagosByCuenta = async(req: Request, res:Response)=>{
     }
 }
 
-const updGastoMensual = async(userID: number, monto: number, fechaPago: Date)=>{
-    const fechCorte = new Date(fechaPago.getFullYear(), fechaPago.getMonth(), 1);
-    const formattedDate = fechCorte.toISOString().split('T')[0]; // Extract 'YYYY-MM-DD'
-    console.log("FECHA FORMATEADAAA "+formattedDate); // Example output: '2024-11-01'
-    console.log("FECHA DE CORTEEEE " + fechCorte);
-    //const formattedMes = inicioMes.toISOString().split("T")[0]; // Format as YYYY-MM-DD
-    const gastoMensual = await corteMensual.findOne({
-        where:{
-            id_usuario: userID,
-            mes: formattedDate
-        }
-    });
-    console.log("gasto mensual "+ gastoMensual);
-    if(gastoMensual){
-        gastoMensual.total+=monto;
-        await gastoMensual.save();
-    }
-    else if(!gastoMensual){
-        const newCorte = await corteMensual.create({
-            id_usuario: userID,
-            mes: fechCorte,
-            total: 0
-        });
-        newCorte.total+=monto;
-        newCorte.save();
-    }
-    
-}
-export{updGastoMensual, getTotalGastado,postPago, postPagoProgramado, updatePago, getPagos, getSinglePago, getPagosCategory, getPagosSubcategory, getPagosCatSub, applyProgrammedPagos, reemboslarPago, getPagosProgramados, updatePagoProgramado, getPagosByCuenta}
+export{getTotalGastado,postPago, postPagoProgramado, updatePago, getPagos, getSinglePago, getPagosCategory, getPagosSubcategory, getPagosCatSub, applyProgrammedPagos, reemboslarPago, getPagosProgramados, updatePagoProgramado, getPagosByCuenta}
