@@ -11,6 +11,7 @@ import { miembros } from "../models/miembros_grupos.model";
 import { negocio } from "../models/negocio.model";
 import { estatuspagos } from "../models/estatus_pagos.model";
 import { user } from "../models/user.model";
+import { Op } from "sequelize";
 
 const addPagoGrupal = async(req:Request, res:Response)=>{
     try{
@@ -470,20 +471,40 @@ const getPagosGrupalesByCatandSub = async(req:Request, res:Response)=>{
 const applyGruProgrammedPagos = async()=>{
     const hoy = new Date();
     const dia= hoy.getDate();
+    const anioActual = hoy.getFullYear();
+    const mesActual = hoy.getMonth();
+
+    const getLastDayOfMonth = (year: number, month:number)=>{
+        return new Date(year, month +1, 0).getDate();
+    }
+
     try{
+
+        const lastDayOfCurrentMonth = getLastDayOfMonth(anioActual, mesActual);
+
         const pagosToApply = await pagogrupalprogramado.findAll({
             where:{
-                dia_programado: dia,
+                [Op.or]:[
+                    {dia_programado: dia},
+                    {dia_programado: {[Op.gt]: lastDayOfCurrentMonth}}
+                ],
+//                dia_programado: dia,
                 estatus_pago:1
             }
         });
-        console.log("se trae los pagos a aplicar");
+        //console.log("se trae los pagos a aplicar");
         if(pagosToApply.length===0){
             console.log("No hay pagos grupales para aplicar hoy");
         }
-        console.log(pagosToApply);
+        //console.log(pagosToApply);
         for(const pago of pagosToApply){
-            const {id_grupo, id_usuario, no_cuenta, descripcion, categoria, subcategoria, monto, pagos_hechos, total_pagos} = pago;
+            let {id_grupo, id_usuario, no_cuenta, descripcion, categoria, subcategoria, monto, pagos_hechos, total_pagos, dia_programado} = pago;
+
+            if(dia_programado > lastDayOfCurrentMonth){
+                dia_programado=lastDayOfCurrentMonth;
+            }
+
+            if(dia_programado!==dia) continue;
 
             const grupoFound = await grupos.findByPk(id_grupo);
             if(grupoFound){
@@ -536,108 +557,6 @@ const applyGruProgrammedPagos = async()=>{
         console.error('Error aplicando pago programado: ', error);
     }
 };
-
-/*const applyGruPendientesPagos = async()=>{
-    const hoy = new Date();
-    const dia= hoy.getDate();
-    try{
-        const pagosPendientesApply = await pagospendientesgrupos.findAll();
-        if(pagosPendientesApply.length===0){
-            console.log("No hay pagos pendientes para aplicar");
-            return;
-        }
-        for(const pago of pagosPendientesApply){
-            const {id_pago_programado} = pago;
-
-            const pagoDetail = await pagogrupalprogramado.findByPk(id_pago_programado);
-            if(!pagoDetail){
-                console.log("Cuenta no encontrada");
-                continue;
-            }
-            const grupoFound = await grupos.findOne({
-                where:{
-                    id_grupo: pagoDetail.id_grupo
-                }
-            });
-            if(!grupoFound){
-                console.log("Grupo no encontrado");
-                continue;
-            }
-            if(grupoFound.fondos<pagoDetail.monto){
-                console.log('Saldos insuficientes');
-                continue;
-            }
-            const categoryFound = await categoriagrupal.findByPk(pagoDetail.categoria);
-            if(!categoryFound){
-                console.log("categoria no encontrada");
-                continue;
-            }
-            grupoFound.fondos -= pagoDetail.monto;
-
-            const newPago = await pagogrupal.create({
-                //id_usuario:pagoDetail.id_usuario,
-                //no_cuenta:pagoDetail.no_cuenta,
-                //descripcion:pagoDetail.descripcion,
-                //monto:pagoDetail.monto,
-                //categoria:pagoDetail.categoria,
-                //subcategoria:pagoDetail.subcategoria,
-                //tipo_pago:2,
-                //fecha: hoy,
-                //dia_pago: fecha,
-                //pagos_hechos: pagoDetail.pagos_hechos+1,
-                //total_pagos:pagoDetail.total_pagos,
-                //estatus_pago: pagoDetail.pagos_hechos + 1 >=pagoDetail.total_pagos ? 2 : 1,
-
-                id_usuario:pagoDetail.id_usuario,
-                id_grupo:pagoDetail.id_grupo,
-                no_cuenta:pagoDetail.no_cuenta,
-                descripcion:pagoDetail.descripcion,
-                monto:pagoDetail.monto,
-                categoria:pagoDetail.categoria,
-                subcategoria:pagoDetail.subcategoria,
-                tipo_pago:2,
-                fecha: hoy,
-                //dia_pago: fecha,
-                pagos_hechos: pagoDetail.pagos_hechos+1,
-                total_pagos:pagoDetail.total_pagos,
-                estatus: pagoDetail.pagos_hechos + 1 >=pagoDetail.total_pagos ? 2 : 1
-            });
-            pagoDetail.pagos_hechos+=1;
-            const newMovimiento = movimientogrupal.create({
-                //id_usuario:pagoDetail.id_usuario,
-                //id_pago:newPago.id_pago,
-                //no_cuenta:pagoDetail.no_cuenta,
-                //descripcion:pagoDetail.descripcion,
-                //monto:pagoDetail.monto,
-                //tipo_movimiento:2,
-                //fecha: hoy
-
-                id_usuario:pagoDetail.id_usuario,
-                id_grupo:pagoDetail.id_grupo,
-                id_pago:newPago.id_pago,
-                no_cuenta:pagoDetail.no_cuenta,
-                descripcion:pagoDetail.descripcion,
-                monto:pagoDetail.monto,
-                tipo_movimiento:2,
-                fecha: hoy
-            });
-            if(pagoDetail.pagos_hechos >= pagoDetail.total_pagos){
-                pagoDetail.estatus_pago=2
-            }
-            await pagoDetail.save();
-            //await pago.save();
-            console.log(`Pago atrasado con monto ${pagoDetail.monto} aplicado a cuenta ${pagoDetail.no_cuenta} para el usuario ${pagoDetail.id_usuario}`);
-            await pagospendientesgrupos.destroy({
-                where:{
-                    id_pago_programado: pago.id_pago_pendiente
-                }
-            });
-            
-        }
-    }catch(error){
-        console.log("Error aplicando pago pendiente ", error);
-    }
-}*/
 
 const updPagoGruProgramado = async(req: Request, res:Response)=>{
     try{
