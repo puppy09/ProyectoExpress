@@ -10,6 +10,6 @@ router.get('/:catId',checkJwt, getSubByCat);
 router.get('/', checkJwt, getSubcategorias);
 
 router.get('/:id_categoria',checkJwt, getSingleSubcategorias);
-router.delete('/', checkJwt, deleteSubcategory);
+router.post('/delete', checkJwt, deleteSubcategory);
 
 export { router };

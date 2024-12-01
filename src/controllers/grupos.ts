@@ -71,7 +71,7 @@ const getGruposCreados = async(req:Request, res:Response)=>{
         if(gruposCreados.length===0){
             return res.status(404).json({message:'Este usuario aun no ha creado grupos'});
         }
-        return res.status(200).json({gruposCreados});
+        return res.status(200).json(gruposCreados);
     }catch(error){
         console.log(error);
         return res.status(500).json({message:'ERROR OBTENIENDO GRUPOS'});
@@ -89,7 +89,8 @@ const getGruposMiembro = async(req:Request, res:Response)=>{
         //Obtenemos todos los grupos a los que pertenece la persona
         const GruposMiembro = await miembros.findAll({
             where:{
-                id_usuario: UserId
+                id_usuario: UserId,
+                tipo_usuario: "MIEMBRO"
             },
             include:[
                 {

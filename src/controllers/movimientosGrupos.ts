@@ -211,32 +211,20 @@ const uptFondosProGru = async(req:Request, res:Response)=>{
     try{
         const UserId = (req as any);
         const {movProId} = req.params;
-        const {grupo, no_cuenta, monto, dia_depo, estatus} = req.body;
-
-        const isActivo = await miembros.findOne({
-            where:{
-                id_grupo: grupo,
-                id_usuario:  UserId,
-                id_estatus: 1
-            }
-        });
-        if(!isActivo){
-            return res.status(500).json({message:'Este user no esta activo'});
-        }
-        const auxMov = await movimientoProgramadoGrupal.findOne({
-            where:{
-                id_grupo: grupo,
-                id_usuario: UserId,
-                id_movimiento: movProId
-            }
-        });
+        const {no_cuenta, descripcion, monto, dia_depo} = req.body;
+        console.log("no cuenta " + no_cuenta);
+        console.log("descripcion "+descripcion);
+        console.log("dia: "+ dia_depo);
+        console.log("monto "+monto);
+        
+        const auxMov = await movimientoProgramadoGrupal.findByPk(movProId);
         if(!auxMov){
             return res.status(404).json({message:'Pago no encontrado'});
         }
+        auxMov.descripcion = descripcion || auxMov.descripcion;
         auxMov.no_cuenta = no_cuenta || auxMov.no_cuenta;
         auxMov.monto = monto   || auxMov.monto;
         auxMov.dia = dia_depo || auxMov.dia;
-        auxMov.estatus = estatus || auxMov.estatus;
         auxMov.save();
         return res.status(200).json({message:'Movimiento Programado Editado con exito'});
     }catch(error){
@@ -353,6 +341,7 @@ const activarMovProgramado = async(req:Request, res:Response)=>{
 const desactivarMovProgramado = async(req:Request, res:Response)=>{
     try {
         const {movPro} = req.params;
+        console.log("MOVIMIENTO PROGRAMADO: "+movPro);
         const userID = (req as any).user.id;
         const movimientoFound = await movimientoProgramadoGrupal.findByPk(movPro);
         if(!movimientoFound){

@@ -83,6 +83,9 @@ const postAndAssign = async(req:Request, res:Response)=>{
         
          //Obtenemos parametros del body
          const { nombre, tipo_negocio, categoria } = req.body;
+         console.log("NOMBREEEE "+nombre);
+         console.log("TIPO NEGOCIOOO "+tipo_negocio);
+         console.log("CATEGORIA "+categoria);
         
          const newNegocio = await negocio.create({
             nombre: nombre,
@@ -189,14 +192,11 @@ const deleteSubcategory = async(req:Request, res:Response)=>{
         //Obtenemos id del usuario
         const id_user = (req as any).user.id;
 
-        //Validamos que exista
-        if(!findingUser(id_user)){
-            return res.status(404).json({message:'Este usuario no ha sido encontrado'});
-        }
-
         //Obtenemos el ID del negocio o marca, asi como la categoria para establecer la relacion
         const {categoria, marca} = req.body;
 
+        console.log("CATEGORIAAAA "+categoria);
+        console.log("SUBCATEGORIAAAA "+marca);
         const auxSub = await subcategory.findOne({
             where:{
                 id_categoria: categoria,

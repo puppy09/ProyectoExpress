@@ -118,28 +118,20 @@ const updatePagoGrupal = async(req:Request, res:Response)=>{
         const UserId = (req as any).user.id;
         const {grupo, no_cuenta, descripcion, monto, categoria, subcategoria} = req.body;
         const {pagoId} = req.params;
+
+        console.log("Grupo "+grupo);
+        console.log("no_cuenta "+no_cuenta);
+        console.log("descripcion "+descripcion);
+        console.log("monto "+monto);
+        console.log("categoria "+categoria);
+        console.log("subcategoria "+subcategoria);
         
-        const isActivo = await miembros.findOne({
-            where:{
-                id_grupo: grupo,
-                id_usuario:  UserId,
-                id_estatus: 1
-            }
-        });
-        if(!isActivo){
-            return res.status(500).json({message:'Este user no esta activo'});
-        }
         const grupoFound = await grupos.findByPk(grupo);
         if(!grupoFound){
             return res.status(404).json({message:'Grupo no encontrado'});
         }
         
-       const pagoFound = await pagogrupal.findOne({
-        where:{
-            id_grupo: grupo,
-            id_usuario: UserId
-        }
-       });
+       const pagoFound = await pagogrupal.findByPk(pagoId);
         if(!pagoFound){
             return res.status(404).json({message:'Pago no encontrado'});
         }
@@ -151,11 +143,13 @@ const updatePagoGrupal = async(req:Request, res:Response)=>{
             return res.status(500).json({message:'Este movimiento es demasiado antiguo para ser editado'});
         }
         const diferencia = pagoFound.monto - monto;
+        
+       pagoFound.no_cuenta=no_cuenta||pagoFound.no_cuenta;
        pagoFound.descripcion=descripcion||pagoFound.descripcion;
        pagoFound.monto=monto||pagoFound.monto;
        pagoFound.categoria=categoria||pagoFound.categoria;
        pagoFound.subcategoria=subcategoria||pagoFound.subcategoria;
-        pagoFound.save();
+    pagoFound.save();
 
        const movFound = await movimientogrupal.findOne({
         where:{
@@ -188,6 +182,7 @@ const updatePagoGrupal = async(req:Request, res:Response)=>{
            auxTipoPago=1;
            auxMonto=diferencia;
        }
+       if(auxTipoPago===1||auxTipoPago===2){
         const newMovimiento = movimientogrupal.create({
             id_grupo:grupo,
             id_usuario:UserId,
@@ -198,6 +193,8 @@ const updatePagoGrupal = async(req:Request, res:Response)=>{
             monto: auxMonto,
             fecha: fecha
         });
+       }
+        
         return res.status(200).json(`Pago con ID ${pagoFound.id_pago}, actualizado con exito`);
     }catch(error){
         console.log(error);
@@ -653,16 +650,6 @@ const updPagoGruProgramado = async(req: Request, res:Response)=>{
         //Obtenemos los datos del pago que se modificaran
         const {grupo, no_cuenta,descripcion, monto, categoria, subcategoria, dia_pago, total_pagos}=req.body;
 
-        const isActivo = await miembros.findOne({
-            where:{
-                id_grupo: grupo,
-                id_usuario:  userId,
-                id_estatus: 1
-            }
-        });
-        if(!isActivo){
-            return res.status(500).json({message:'Este user no esta activo'});
-        }
         const currentDate = new Date();
         const grupoFound = await grupos.findByPk(grupo);
         if(!grupoFound){

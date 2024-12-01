@@ -126,8 +126,7 @@ const updatePago = async(req:Request, res:Response)=>{
         //Obtenemos cuenta del usuario
         const cuentaFound = await cuenta.findOne({
             where:{
-                no_cuenta: no_cuenta,
-                id_usuario: userId
+                no_cuenta: no_cuenta
             }
         });
         if(!cuentaFound){
@@ -213,7 +212,7 @@ const updatePago = async(req:Request, res:Response)=>{
 
     }catch(error){
         console.log(error);
-        return res.status(500).json({message:'Internal Server Error'});
+        return res.status(500).json(error);
     }
 }
 const updatePagoProgramado = async(req:Request, res:Response)=>{
@@ -231,8 +230,7 @@ const updatePagoProgramado = async(req:Request, res:Response)=>{
         //Obtenemos la cuenta
         const cuentaFound = await cuenta.findOne({
             where:{
-                no_cuenta: no_cuenta,
-                id_usuario: userId
+                no_cuenta: no_cuenta
             }
         });
         if(!cuentaFound){

@@ -23,13 +23,13 @@ const postCategory = async(req: Request, res:Response)=>{
         if(!findingUser(id_user)){
             return res.status(404).json({message:'usuario no encontrado'});
         }
-        const isValid = await validateTotalBudgetPercentage(presupuesto, id_user);
+        /*const isValid = await validateTotalBudgetPercentage(presupuesto, id_user);
         if(!isValid){
             return res.status(500).json({message:'El porcentaje total de las categorias activas no puede exceder a 100'});
         }
         if(presupuesto > 100 || presupuesto < 0){
             return res.status(500).json({message: 'El presupuesto no puede ser menor de 0 ni mayor a 100'})
-        }
+        }*/
         //crear nueva categoría
         const newCategory = await category.create({
             nombre: nombre,
@@ -128,7 +128,7 @@ const updateCategory = async(req: Request, res:Response)=>{
         const { category_id }  = req.params;
 
         //Obtenemos Nombre y presupuesto
-        var { nombre, presupuesto, estatus } = req.body;
+        var { nombre, presupuesto } = req.body;
 
         
        //Validamos que el user exista
@@ -149,25 +149,24 @@ const updateCategory = async(req: Request, res:Response)=>{
 
         //Si no se manda el dato de presupuesto se tomara el que se encontraba previamente asignado
         //Esto ya esta validado mas abajo pero es para que pueda entrar la funcion de Validacion de Presupuestos
-        if(!presupuesto){
+        /*if(!presupuesto){
             presupuesto = CategoryFound.presupuesto;
         }
         const isValid = await validateTotalBudgetPercentage(presupuesto, id_user);
         if(!isValid){
             return res.status(500).json({message:'El porcentaje total de las categorias activas no puede exceder a 100'});
-        }
+        }*/
         
         //Validamos que sea una cantidad valida
-        if(presupuesto>100||presupuesto<0||isNaN(presupuesto)){
-            return res.status(500).json({message: 'El presupuesto no puede ser mayor a 100 ni menor a 0'});
-        }
-        if(estatus>2||estatus<1){
-            return res.status(500).json({message: 'Estatus incorrecto'});
-        }
+        //if(presupuesto>100||presupuesto<0||isNaN(presupuesto)){
+          //  return res.status(500).json({message: 'El presupuesto no puede ser mayor a 100 ni menor a 0'});
+        //}
+        //if(estatus>2||estatus<1){
+         //   return res.status(500).json({message: 'Estatus incorrecto'});
+        //}
         //Actualizar categoria con los nuevos valores
         CategoryFound.nombre = nombre || CategoryFound.nombre;
         CategoryFound.presupuesto = presupuesto || CategoryFound.presupuesto;
-        CategoryFound.estatus = estatus || CategoryFound.estatus;
 
         //Guardar la categoria actualizada
         await CategoryFound.save();
@@ -207,10 +206,10 @@ const activarCategory = async(req: Request, res:Response)=>{
                 return res.status(200).json({message:'Esta categoria ya esta activa'});
             }
 
-            const isValid = await validateTotalBudgetPercentage(categoryFound.presupuesto, user_id, categoryFound.ID);
+            /*const isValid = await validateTotalBudgetPercentage(categoryFound.presupuesto, user_id, categoryFound.ID);
             if(!isValid){
                 return res.status(400).json({message:'No se puede activar la categoria, el total excederia 100%'});
-            }
+            }*/
 
             categoryFound.estatus = 1;
             categoryFound.save();
@@ -309,6 +308,36 @@ const getActivaCategories=async(req:Request, res:Response)=>{
     }
 }
 
+const getInactiveCategories=async (req:Request, res:Response)=>{
+    try {
+        //Obtenemos id del user
+        const user_id = (req as any).user.id;
+        //Validamos que el user exista
+        if(!findingUser(user_id)){
+            return res.status(404).json({message:'Este usuario no ha sido encontrado'});
+        }
+        const inactiveCategories = await category.findAll({
+            where:{
+                id_user: user_id,
+                estatus: 2
+            },
+            include: [
+                {
+                    model: estatus, // Include the category details
+                    as: 'estatusDetail',
+                    attributes: ['estatus'] // Specify the attributes you want to retrieve from Category
+                }
+            ]
+        });
+        if(inactiveCategories.length===0){
+            return res.status(404).json({message:'Este user no ha añadido categorias'});
+        }
+        return res.status(200).json(inactiveCategories);
+        
+    } catch (error) {
+        return res.status(500).json({message:'Error obteniendo categorias activas'});
+    }
+}
 const getBudgetSpent = async(req:Request, res:Response)=>{
     try{
         const UserId = (req as any).user.id;
@@ -377,8 +406,9 @@ const getTotalSpent = async(req:Request, res:Response)=>{
     try {
         const userID = (req as any).user.id;
 
-        const inicioMes = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
-        const finMes = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0);
+        const inicioMes = new Date(new Date().getFullYear(), new Date().getMonth(), 1, 0, 0, 0);
+        console.log("Inicio Mes"+inicioMes);
+        const finMes = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0, 23, 59, 59);
         const categoriasFound = await category.findAll({
             where:{
                 id_user:userID
@@ -393,7 +423,7 @@ const getTotalSpent = async(req:Request, res:Response)=>{
             }
         });
         const totalGastadoFixed = totalGastado ? parseFloat(totalGastado.toFixed(2)):0;
-        console.log(totalGastado);
+        console.log("TOTAL GASTADO "+totalGastado);
         const categoriasPorcentaje = await Promise.all(categoriasFound.map(async (category)=>{
             const totalGastadoCat = await pagos.sum('monto',{
                 where:{
@@ -425,4 +455,116 @@ const getTotalSpent = async(req:Request, res:Response)=>{
         return res.status(500).json({error});
     }
 }
-export {getTotalSpent, postCategory, getCategory, updateCategory, activarCategory, desactivarCategory, getSingleCategory, getTotalBudget, getActivaCategories, getBudgetSpent};
+
+const getTotalSpent3Months = async(req:Request, res:Response)=>{
+    try {
+        const userID = (req as any).user.id;
+
+        const today = new Date();
+        const threeMonthsAgo = new Date(today.getFullYear(), today.getMonth() - 2, 1);
+        const endOfThisMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+
+        const categoriasFound = await category.findAll({
+            where: {
+                id_user: userID,
+            },
+        });
+
+        const totalGastado = await pagos.sum('monto', {
+            where: {
+                fecha: {
+                    [Op.between]: [threeMonthsAgo, endOfThisMonth],
+                },
+            },
+        });
+
+        const totalGastadoFixed = totalGastado ? parseFloat(totalGastado.toFixed(2)) : 0;
+
+        const categoriasPorcentaje = await Promise.all(categoriasFound.map(async (category) => {
+            const totalGastadoCat = await pagos.sum('monto', {
+                where: {
+                    categoria: category.ID,
+                    fecha: {
+                        [Op.between]: [threeMonthsAgo, endOfThisMonth],
+                    },
+                },
+            });
+
+            const totalGastadoCatFixed = totalGastadoCat ? parseFloat(totalGastadoCat.toFixed(2)) : 0;
+            const percentage = totalGastado > 0 ? (totalGastadoCatFixed / totalGastadoFixed) * 100 : 0;
+
+            return {
+                categoryId: category.ID,
+                categoryNombre: category.nombre,
+                totalSpent: totalGastadoCatFixed || 0,
+                percentage: percentage.toFixed(2),
+            };
+        }));
+
+        return res.status(200).json({
+            totalGastadoFixed,
+            categories: categoriasPorcentaje,
+        });
+
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ error });
+    }
+}
+
+const getTotalSpent6Months = async(req:Request, res:Response)=>{
+    try {
+        const userID = (req as any).user.id;
+
+        const today = new Date();
+        const sixMonthsAgo = new Date(today.getFullYear(), today.getMonth() - 5, 1);
+        const endOfThisMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+
+        const categoriasFound = await category.findAll({
+            where: {
+                id_user: userID,
+            },
+        });
+
+        const totalGastado = await pagos.sum('monto', {
+            where: {
+                fecha: {
+                    [Op.between]: [sixMonthsAgo, endOfThisMonth],
+                },
+            },
+        });
+
+        const totalGastadoFixed = totalGastado ? parseFloat(totalGastado.toFixed(2)) : 0;
+
+        const categoriasPorcentaje = await Promise.all(categoriasFound.map(async (category) => {
+            const totalGastadoCat = await pagos.sum('monto', {
+                where: {
+                    categoria: category.ID,
+                    fecha: {
+                        [Op.between]: [sixMonthsAgo, endOfThisMonth],
+                    },
+                },
+            });
+
+            const totalGastadoCatFixed = totalGastadoCat ? parseFloat(totalGastadoCat.toFixed(2)) : 0;
+            const percentage = totalGastado > 0 ? (totalGastadoCatFixed / totalGastadoFixed) * 100 : 0;
+
+            return {
+                categoryId: category.ID,
+                categoryNombre: category.nombre,
+                totalSpent: totalGastadoCatFixed || 0,
+                percentage: percentage.toFixed(2),
+            };
+        }));
+
+        return res.status(200).json({
+            totalGastadoFixed,
+            categories: categoriasPorcentaje,
+        });
+
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ error });
+    }
+}
+export {getTotalSpent6Months,getTotalSpent3Months,getTotalSpent, postCategory, getCategory, updateCategory, activarCategory, desactivarCategory, getSingleCategory, getTotalBudget, getActivaCategories, getInactiveCategories, getBudgetSpent};

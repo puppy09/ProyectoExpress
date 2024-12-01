@@ -129,7 +129,7 @@ const getSelfData = async(req:Request, res:Response)=>{
     try {
 
         const userID = (req as any).user.id;
-        console.log("SEEEEEEEEEEEEEEEEEELLLLLLLLLLLLLLLLFFFFFFFFFFFFF DDDDDDDDDDDDDDDDDAAAAAAAAAAAAAAAAAATTTTTTTTAAAAAAAAAAA");
+        console.log("EEEEEEELLLLLLLLLLLLLLLLFFFFFFFFFFFFF DDDDDDDDDDDDDDDDDAAAAAAAAAAAAAAAAAATTTTTTTTAAAAAAAAAAA");
         const userFound= await user.findByPk(userID);
         return res.status(200).json(userFound);
     } catch (error) {

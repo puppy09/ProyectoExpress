@@ -8,7 +8,7 @@ router.post('/add/:grupo',checkJwt, addFondos);
 router.post('/add/programados/:grupo',checkJwt, addFondosProgramados);
 router.get('/:grupo',checkJwt, getMovimientosGrupales);
 router.get('/programados/:grupo',checkJwt, getMovimientosProgramadosGrupales);
-router.put('/update/:grupo',checkJwt,uptFondosProGru);
+router.put('/update/:movProId',checkJwt,uptFondosProGru);
 router.patch('/desactivar/:movPro',checkJwt, desactivarMovProgramado);
 router.patch('/activar/:movPro',checkJwt, activarMovProgramado);
 export {router};
