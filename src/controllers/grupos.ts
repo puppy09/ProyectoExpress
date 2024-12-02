@@ -90,7 +90,7 @@ const getGruposMiembro = async(req:Request, res:Response)=>{
         const GruposMiembro = await miembros.findAll({
             where:{
                 id_usuario: UserId,
-                tipo_usuario: "MIEMBRO"
+                //tipo_usuario: "MIEMBRO"
             },
             include:[
                 {

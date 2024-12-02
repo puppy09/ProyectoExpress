@@ -129,4 +129,35 @@ const deleteSubcategory = async(req:Request, res:Response)=>{
         return res.status(500).json({message:'Error eliminando subcategoria'});
     }
 }
-export {addSubcategoria, getSubcategorias,getSubcategoriasByCat, deleteSubcategory};
+
+const postAndAssignGrupos = async(req:Request, res:Response)=>{
+    try {
+
+         //Obtenemos id del usuario
+         const userId = (req as any).user.id;
+        
+         //Obtenemos parametros del body
+         const { grupo, nombre, tipo_negocio, categoria } = req.body;
+         console.log("NOMBREEEE "+nombre);
+         console.log("TIPO NEGOCIOOO "+tipo_negocio);
+         console.log("CATEGORIA "+categoria);
+        
+         const newNegocio = await negocio.create({
+            nombre: nombre,
+            tipo_negocio: tipo_negocio,
+            id_creador: userId
+        });
+
+        const newSubcategory = await subcategoriagrupal.create({
+            id_categoria: categoria,
+            id_negocio: newNegocio.id_negocio,
+            id_creador: userId,
+            id_grupo: grupo
+        });
+        return res.status(201).json(newSubcategory);        
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({message:'Error agregando subcategoria'})
+    }
+}
+export {addSubcategoria, getSubcategorias,getSubcategoriasByCat, deleteSubcategory, postAndAssignGrupos};

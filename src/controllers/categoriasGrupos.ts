@@ -15,13 +15,13 @@ const addCategoria = async(req:Request, res:Response)=>{
         const {nombre, presupuesto} = req.body;
         const {grupo} = req.params;
         const auxGrupo = parseInt(grupo);
-        const isMiembro = await miembros.findOne({
+        /*const isMiembro = await miembros.findOne({
             where:{
                 id_grupo: grupo,
                 id_usuario: UserId
             }
-        });
-        if(!isMiembro){
+        });*/
+        /*if(!isMiembro){
             return res.status(401).json({message:'No eres miembro de este grupo'});
         }
         const isValid = await validateTotalBudgetPercentageGrupal(presupuesto, auxGrupo);
@@ -30,7 +30,7 @@ const addCategoria = async(req:Request, res:Response)=>{
         }
         if(presupuesto > 100 || presupuesto < 0){
             return res.status(500).json({message: 'El presupuesto no puede ser menor de 0 ni mayor a 100'})
-        }
+        }*/
         
         const newCategory = categoriagrupal.create({
             id_grupo: auxGrupo,
@@ -177,7 +177,7 @@ const getGlobalActCat = async(req:Request, res:Response)=>{
 const updateGloCat = async(req:Request, res:Response)=>{
     try{
 
-        const {grupo, estatus, nombre, presupuesto} = req.body;
+        const {grupo, nombre, presupuesto} = req.body;
         const UserId = (req as any).user.id;
         const {categoria} = req.params;
         const auxGrupo = parseInt(grupo);
@@ -192,16 +192,10 @@ const updateGloCat = async(req:Request, res:Response)=>{
         if(!categoriesFound){
             return res.status(404).json({message:'Categoria no encontrada o No tienes acceso'});
         }
-        const isValid = await validateTotalBudgetPercentageGrupal(presupuesto, auxGrupo, auxCat);
-        if(!isValid){
-            return res.status(500).json({message:'El porcentaje total de las categorias activas no puede exceder a 100'});
-        }
-        if(presupuesto > 100 || presupuesto < 0){
-            return res.status(500).json({message: 'El presupuesto no puede ser menor de 0 ni mayor a 100'})
-        }
 
         categoriesFound.categoria=nombre|| categoriesFound.categoria;
-        categoriesFound.estatus=estatus||categoriesFound.estatus;
+        categoriesFound.presupuesto=presupuesto||categoriesFound.presupuesto;
+        //categoriesFound.estatus=estatus||categoriesFound.estatus;
         categoriesFound.save();
         return res.status(200).json({message:'Categoria Actualizada exitosamente'});
     }catch(error){
@@ -273,4 +267,43 @@ const getBudgetSpentGrupal = async(req:Request, res:Response)=>{
         return res.status(500).json({message:'ERROR OBTENIENDO PRESUPUESTO GASTADO'});
     }
 }
-export{addCategoria, getCategorias, deshabilitarCat, habilitarCat, getGlobalActCat, updateGloCat, getBudgetSpentGrupal}
+
+const getCategoriasInactivas = async(req:Request, res:Response)=>{
+    try {
+        const {grupo} = req.params;
+        const UserId = (req as any).user.id;
+
+        const userFound = await miembros.findOne({where:{
+            id_grupo: grupo,
+            $id_usuario$: UserId
+        }});
+        if(!userFound){
+            return res.status(401).json({message:'No tienes acceso'});
+        }
+        const categoriesFound = await categoriagrupal.findAll({
+            where:{
+                id_grupo: grupo,
+                estatus:2
+            },include: [
+                {
+                    model: estatus, // Include the category details
+                    as: 'estatusDetail',
+                    attributes: ['estatus'] // Specify the attributes you want to retrieve from Category
+                },
+                {
+                    model: user,
+                    as: 'creadorDetail',
+                    attributes: ['nombre']
+                }
+            ]
+        });
+        if(categoriesFound.length===0){
+            return res.status(404).json({message:'Categorias no encontradas'});
+        }        
+        return res.status(200).json(categoriesFound);
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({message:'ERROR OBTENIENDO CATEGORIAS ACTIVAS'});
+    }
+}
+export{addCategoria, getCategorias, deshabilitarCat, habilitarCat, getGlobalActCat, getCategoriasInactivas,updateGloCat, getBudgetSpentGrupal}

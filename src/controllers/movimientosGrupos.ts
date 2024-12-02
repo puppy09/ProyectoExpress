@@ -24,16 +24,16 @@ const addFondos = async(req:Request, res:Response)=>{
         if(!cuentaFound){
             return res.status(404).json({message:'Cuenta no encontrada'});
         }
-        const isActivo = await miembros.findOne({
+        /*const isActivo = await miembros.findOne({
             where:{
                 id_grupo: grupo,
                 id_usuario:  UserId,
                 id_estatus: 1
             }
-        });
-        if(!isActivo){
+        });*/
+        /*if(!isActivo){
             return res.status(500).json({message:'Este user no esta activo'});
-        }
+        }*/
         if(cuentaFound.saldo<monto){
             return res.status(500).json({message:'Fondos insuficientes'});
         }
