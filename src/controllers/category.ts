@@ -405,10 +405,11 @@ const getBudgetSpent = async(req:Request, res:Response)=>{
 const getTotalSpent = async(req:Request, res:Response)=>{
     try {
         const userID = (req as any).user.id;
-
-        const inicioMes = new Date(new Date().getFullYear(), new Date().getMonth(), 1, 0, 0, 0);
+        const {mes} = req.body;
+        const mesFixed=mes-1;
+        const inicioMes = new Date(new Date().getFullYear(), mesFixed, 1, 0, 0, 0);
         console.log("Inicio Mes"+inicioMes);
-        const finMes = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0, 23, 59, 59);
+        const finMes = new Date(new Date().getFullYear(), mesFixed + 1, 0, 23, 59, 59);
         const categoriasFound = await category.findAll({
             where:{
                 id_user:userID
@@ -422,6 +423,9 @@ const getTotalSpent = async(req:Request, res:Response)=>{
                 },
             }
         });
+        if(totalGastado!=null){
+            console.log("SI SE ENCONTRO"+totalGastado);
+        }
         const totalGastadoFixed = totalGastado ? parseFloat(totalGastado.toFixed(2)):0;
         console.log("TOTAL GASTADO "+totalGastado);
         const categoriasPorcentaje = await Promise.all(categoriasFound.map(async (category)=>{
@@ -439,6 +443,7 @@ const getTotalSpent = async(req:Request, res:Response)=>{
             //totalGastadoCat.toFixed(2);
             return {
                 categoryId: category.ID,
+                presupuesto: category.presupuesto,
                 categoryNombre: category.nombre,
                 totalSpent: totalGastadoCatFixed || 0,
                 percentage: percentage.toFixed(2), // Round to two decimal places

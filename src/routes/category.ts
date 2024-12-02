@@ -9,7 +9,7 @@ router.get('/totalBudget',checkJwt,getTotalBudget);
 router.get('/activas',checkJwt,getActivaCategories);
 router.get('/inactivas',checkJwt, getInactiveCategories);
 
-router.get('/porcentaje/gastado',checkJwt,getTotalSpent);
+router.post('/porcentaje/gastado/',checkJwt,getTotalSpent);
 router.get('/porcentaje/gastado/3',checkJwt,getTotalSpent3Months);
 router.get('/porcentaje/gastado/6',checkJwt, getTotalSpent6Months);
 
