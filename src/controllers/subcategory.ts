@@ -16,12 +16,7 @@ const asignarSubcategoria = async(req:Request, res:Response)=>{
         //Obtenemos el ID del negocio o marca, asi como la categoria para establecer la relacion
         const {categoria, marca} = req.body;
 
-        //Validamos que exista
-        if(!findingUser(id_user)){
-            return res.status(404).json({message:'Este usuario no ha sido encontrado'});
-        }
-
-        //Validamos que exista la categoria o pertenezca al usuario
+        /*//Validamos que exista la categoria o pertenezca al usuario
         const categoryFound = await category.findOne({
             where:{
                 ID: categoria,
@@ -30,15 +25,15 @@ const asignarSubcategoria = async(req:Request, res:Response)=>{
         });
         if(!categoryFound){
             return res.status(404).json({message:'Categoria no valida, o no pertenece al usuario'});
-        }
+        }*/
 
         //Si se encontro, validamos que no este dada de baja
-        if(categoryFound.estatus===2){
-            return res.status(500).json({message:'Categoria inactiva, es necesario activar primero'});
-        }
+        //if(categoryFound.estatus===2){
+          //  return res.status(500).json({message:'Categoria inactiva, es necesario activar primero'});
+        //}
 
         //Validamos que el negocio exista
-        const negocioFound = await negocio.findOne({
+        /*const negocioFound = await negocio.findOne({
             where:{
                 id_negocio: marca,
                 [Op.or]:[
@@ -49,7 +44,7 @@ const asignarSubcategoria = async(req:Request, res:Response)=>{
         });
         if(!negocioFound){
             return res.status(404).json({message: 'Negocio no encontrado o no ha sido registrado por el usuario'});
-        }
+        }*/
 
         const auxSub = await subcategory.findOne({
             where:{
@@ -59,7 +54,7 @@ const asignarSubcategoria = async(req:Request, res:Response)=>{
             }
         });
         if(auxSub){
-            return res.status(500).json({mesasge:'Este negocio o marca ya esta asignado a esta categoria'});
+            return res.status(500).json({message:'Subcategoria ya previamente asignada'});
         }
 
         const newSubcategory = await subcategory.create({

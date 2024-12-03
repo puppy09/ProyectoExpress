@@ -9,7 +9,7 @@ const addSubcategoria = async(req:Request, res:Response)=>{
         const {categoria, id_negocio} = req.body;
         const {grupo} = req.params;
         
-        const categoryFound = await categoriagrupal.findByPk(categoria);
+        /*const categoryFound = await categoriagrupal.findByPk(categoria);
         if(!categoryFound){
             return res.status(404).json({message:'Categoria grupal no encontrada'});
         }
@@ -17,17 +17,31 @@ const addSubcategoria = async(req:Request, res:Response)=>{
         console.log(negocioFound);
         if(!negocioFound){
             return res.status(404).json({message:'Negocio no encontrado'});
-        }
+        }*/
         
-        const auxGrupo = parseInt(grupo);
+        const existingCategory = await subcategoriagrupal.findOne({
+            where:{
+                id_grupo: grupo,
+                id_categoria: categoria,
+                id_negocio: id_negocio
+            }
+        });
+        
+        if(!existingCategory){
+            const auxGrupo = parseInt(grupo);
         const newSubcategoria = subcategoriagrupal.create({
             id_grupo: auxGrupo,
-            id_categoria: categoryFound.id_categoria,
-            id_negocio: negocioFound.id_negocio,
+            id_categoria: categoria,
+            id_negocio: id_negocio,
             id_creador: UserId
         });
 
         return res.status(200).json({message:'Subcategoria creada'});
+        }
+        else{
+            return res.status(500).json({message:'Ya existe esta subcategoria asignada'});
+        }
+        
     }catch(error){
         console.log(error);
         return res.status(500).json({message:'ERROR CREANDO SUBCATEGORIA'});
