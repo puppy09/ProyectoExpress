@@ -24,16 +24,6 @@ const addFondos = async(req:Request, res:Response)=>{
         if(!cuentaFound){
             return res.status(404).json({message:'Cuenta no encontrada'});
         }
-        /*const isActivo = await miembros.findOne({
-            where:{
-                id_grupo: grupo,
-                id_usuario:  UserId,
-                id_estatus: 1
-            }
-        });*/
-        /*if(!isActivo){
-            return res.status(500).json({message:'Este user no esta activo'});
-        }*/
         if(cuentaFound.saldo<monto){
             return res.status(500).json({message:'Fondos insuficientes'});
         }
@@ -47,17 +37,6 @@ const addFondos = async(req:Request, res:Response)=>{
         if(!isMiembro){
             return res.status(401).json({message:'No eres miembro de este grupo o no es activo'});
         }
-/*        if(tipo_deposito===2){
-            const depoProgramado = movimientoProgramadoGrupal.create({
-                id_grupo: auxGrupo,
-                id_usuario: UserId,
-                no_cuenta: no_cuenta,
-                descripcion: `Adicion de fondos del usuario ${UserId}`,
-                monto: monto,
-                dia:dia_depo,
-                estatus:1
-            });
-        }*/
         cuentaFound.saldo -= monto;
         cuentaFound.save();
         
@@ -356,4 +335,16 @@ const desactivarMovProgramado = async(req:Request, res:Response)=>{
         return res.status(500).json({message:'Error desactivando movimiento'});
     }
 }
-export{desactivarMovProgramado,activarMovProgramado,addFondosProgramados, addFondos, applyFondosGrupales, uptFondosProGru , getMovimientosGrupales, getMovimientosProgramadosGrupales};
+
+const getFondos = async(req:Request, res:Response)=>{
+    try {
+        const {grupo} = req.params;
+        
+        const grupoFound = await grupos.findByPk(grupo);
+        return res.status(200).json(grupoFound);
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json("Error Obteniendo fondos de grupo");
+    }
+}
+export{getFondos, desactivarMovProgramado,activarMovProgramado,addFondosProgramados, addFondos, applyFondosGrupales, uptFondosProGru , getMovimientosGrupales, getMovimientosProgramadosGrupales};

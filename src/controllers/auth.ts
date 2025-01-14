@@ -92,12 +92,14 @@ const registerCtrl = async(req:Request, res:Response)=>{
 const recoverPsw = async(req: Request, res:Response)=>{
     try {
         const {email} = req.body;
+        console.log(email);
         const correoFound = await user.findOne({
             where:{
                 email: email
             }
         });
         if(correoFound){
+            console.log("Correo encontrado");
             const newPassword = generateRandomPassword();
             updatePassword(email, newPassword);
         
@@ -113,7 +115,7 @@ const recoverPsw = async(req: Request, res:Response)=>{
                 from: process.env.CORREO,
                 to: email,
                 subject: 'Recuperar Contraseña',
-                text: `Tu Contraseña temporal es : ${newPassword}. Ingresa en la aplicacion.`,
+                text: `Tu Contraseña temporal es : ${newPassword} Ingresa en la aplicacion.`,
             };
             await transporter.sendMail(mailOptions);
         }
